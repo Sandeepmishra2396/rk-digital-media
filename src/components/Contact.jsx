@@ -46,7 +46,7 @@ export default function Contact() {
           <span className="section-tag">Get In Touch</span>
           <h2 className="section-title mt-2">
             Contact{' '}
-            <span className="text-gradient">RK DIGITAL MEDIA</span>
+            <span className="text-gradient">RK Digital Media</span>
           </h2>
           <p className="section-desc mt-4">
             Ready to distribute your music? Have questions about our services? Reach out to us directly —

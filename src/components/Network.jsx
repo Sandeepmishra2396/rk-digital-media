@@ -6,7 +6,8 @@ import {
 } from 'lucide-react';
 import networkChannels, { channelCategories } from '../data/networkChannels';
 
-const ITEMS_PER_PAGE = 24;
+// Fix for Issue 6: Reduce cards per page to prevent cognitive overload
+const ITEMS_PER_PAGE = 12;
 
 function getInitials(name) {
   return name
@@ -115,14 +116,19 @@ export default function Network() {
           <div className="flex flex-col md:flex-row gap-3">
             {/* Search */}
             <div className="flex-1 relative">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
+              <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
               <input
                 type="text"
                 placeholder="Search by channel name or @handle..."
                 value={search}
                 onChange={(e) => { setSearch(e.target.value); setPage(1); }}
-                className="w-full pl-10 pr-4 py-2.5 bg-gray-50 border border-gray-200 rounded-xl text-sm text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all"
+                className="w-full pl-10 pr-28 py-2.5 bg-gray-50 border border-gray-200 rounded-xl text-sm text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all"
+                aria-label="Search channels by name or handle"
               />
+              {/* Cohesive status indicator directly beside search - Fix for Issue 7 */}
+              <span className="absolute right-2.5 top-1/2 -translate-y-1/2 px-2 py-0.5 rounded-lg bg-white border border-gray-200 text-xs font-semibold text-gray-600 shadow-xs pointer-events-none">
+                {filtered.length} / {networkChannels.length}
+              </span>
             </div>
 
             {/* Category filter */}
@@ -132,6 +138,7 @@ export default function Network() {
                 value={category}
                 onChange={(e) => { setCategory(e.target.value); setPage(1); }}
                 className="pl-10 pr-8 py-2.5 bg-gray-50 border border-gray-200 rounded-xl text-sm text-gray-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent appearance-none cursor-pointer transition-all"
+                aria-label="Filter channels by category"
               >
                 {channelCategories.map((c) => (
                   <option key={c} value={c}>{c === 'All' ? 'All Categories' : c}</option>
@@ -140,48 +147,42 @@ export default function Network() {
               <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 pointer-events-none" />
             </div>
 
-            {/* Sort buttons */}
-            <div className="flex gap-2">
+            {/* Sort buttons & quick reset */}
+            <div className="flex items-center gap-2">
               <button
                 onClick={() => toggleSort('name')}
                 className={`flex items-center gap-1.5 px-3 py-2.5 rounded-xl text-sm font-medium border transition-all ${
                   sortBy === 'name'
-                    ? 'bg-indigo-600 text-white border-indigo-600'
+                    ? 'bg-indigo-600 text-white border-indigo-600 shadow-sm'
                     : 'bg-gray-50 text-gray-600 border-gray-200 hover:border-indigo-300'
                 }`}
+                aria-label="Sort channels by name"
               >
                 {sortBy === 'name' && sortDir === 'desc' ? <SortDesc className="w-4 h-4" /> : <SortAsc className="w-4 h-4" />}
-                Name
+                <span>Name</span>
               </button>
               <button
                 onClick={() => toggleSort('subscribers')}
                 className={`flex items-center gap-1.5 px-3 py-2.5 rounded-xl text-sm font-medium border transition-all ${
                   sortBy === 'subscribers'
-                    ? 'bg-indigo-600 text-white border-indigo-600'
+                    ? 'bg-indigo-600 text-white border-indigo-600 shadow-sm'
                     : 'bg-gray-50 text-gray-600 border-gray-200 hover:border-indigo-300'
                 }`}
+                aria-label="Sort channels by subscriber count"
               >
                 {sortBy === 'subscribers' && sortDir === 'desc' ? <SortDesc className="w-4 h-4" /> : <SortAsc className="w-4 h-4" />}
-                Subs
+                <span>Subs</span>
               </button>
-            </div>
-          </div>
 
-          {/* Results info */}
-          <div className="flex items-center justify-between mt-3 pt-3 border-t border-gray-100">
-            <p className="text-xs text-gray-500">
-              Showing{' '}
-              <strong className="text-gray-900">{filtered.length}</strong> of{' '}
-              <strong className="text-gray-900">{networkChannels.length}</strong> channels
-            </p>
-            {(search || category !== 'All') && (
-              <button
-                onClick={() => { setSearch(''); setCategory('All'); setPage(1); }}
-                className="text-xs text-indigo-600 hover:text-indigo-800 font-medium"
-              >
-                Clear filters
-              </button>
-            )}
+              {(search || category !== 'All') && (
+                <button
+                  onClick={() => { setSearch(''); setCategory('All'); setPage(1); }}
+                  className="text-xs text-indigo-600 hover:text-indigo-800 font-semibold px-2 py-1 transition-colors"
+                >
+                  Reset
+                </button>
+              )}
+            </div>
           </div>
         </div>
 
@@ -277,21 +278,22 @@ export default function Network() {
                       </span>
                     </div>
 
-                    {/* Visit action (Refined for Issue 15) */}
-                    <div className="mt-auto">
+                    {/* Visit action (Fix for Issue 8: High-contrast secondary outline button) */}
+                    <div className="mt-auto pt-2">
                       {channel.url && !isRemoved ? (
                         <a
                           href={channel.url}
                           target="_blank"
                           rel="noopener noreferrer"
-                          className="flex items-center justify-center gap-2 w-full py-2 px-3 rounded-xl bg-gray-50 hover:bg-red-50 text-gray-600 hover:text-red-600 text-xs font-medium border border-gray-200 hover:border-red-200 transition-all duration-200"
+                          className="flex items-center justify-center gap-2 w-full py-2.5 px-3 rounded-xl bg-white hover:bg-red-50 text-slate-900 hover:text-red-600 text-xs font-semibold border-2 border-slate-200 hover:border-red-300 shadow-xs hover:shadow-sm transition-all duration-200 group/btn focus:outline-none focus-visible:ring-2 focus-visible:ring-red-500"
+                          aria-label={`Visit ${channel.name} YouTube Channel (opens in new tab)`}
                         >
-                          <Youtube className="w-3.5 h-3.5 text-gray-400 group-hover:text-red-500" />
+                          <Youtube className="w-4 h-4 text-red-600 group-hover/btn:scale-110 transition-transform" />
                           <span>Visit Channel</span>
-                          <ExternalLink className="w-3 h-3 opacity-60" />
+                          <ExternalLink className="w-3.5 h-3.5 text-slate-400 group-hover/btn:text-red-500 transition-colors" />
                         </a>
                       ) : (
-                        <div className="flex items-center justify-center gap-2 w-full py-2 px-3 rounded-xl bg-gray-50 text-gray-400 text-xs font-medium border border-gray-100 cursor-not-allowed">
+                        <div className="flex items-center justify-center gap-2 w-full py-2.5 px-3 rounded-xl bg-slate-100 text-slate-400 text-xs font-medium border border-slate-200 cursor-not-allowed">
                           {isRemoved ? 'Channel Unavailable' : 'Handle Unavailable'}
                         </div>
                       )}

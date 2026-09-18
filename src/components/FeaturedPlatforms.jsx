@@ -95,7 +95,7 @@ export default function FeaturedPlatforms() {
           </p>
         </div>
 
-        {/* Featured Platform Cards */}
+        {/* Featured Platform Cards (Fix for Issues 5 & 9) */}
         <div className="grid md:grid-cols-3 gap-6">
           {featured.map((platform, i) => (
             <motion.div
@@ -104,57 +104,64 @@ export default function FeaturedPlatforms() {
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true, margin: '-30px' }}
               transition={{ duration: 0.6, delay: i * 0.12 }}
-              className="relative rounded-2xl overflow-hidden border group hover:scale-[1.02] transition-transform duration-300"
-              style={{ borderColor: platform.borderColor + '40' }}
+              className="h-full"
             >
-              {/* Gradient background */}
-              <div className={`absolute inset-0 bg-gradient-to-br ${platform.bg}`} />
-              <div className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-300"
-                style={{ background: `radial-gradient(circle at top left, ${platform.color}15, transparent 70%)` }}
-              />
+              <a
+                href={`mailto:rkdigitalmediawork@gmail.com?subject=Distribute to ${encodeURIComponent(platform.name)}`}
+                className="relative block h-full rounded-2xl overflow-hidden border group hover:scale-[1.02] transition-transform duration-300 cursor-pointer focus-visible:ring-2 focus-visible:ring-indigo-400 focus:outline-none"
+                style={{ borderColor: platform.borderColor + '40' }}
+                aria-label={`Get your music distributed on ${platform.name}`}
+              >
+                {/* Gradient background */}
+                <div className={`absolute inset-0 bg-gradient-to-br ${platform.bg}`} />
+                <div
+                  className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none"
+                  style={{ background: `radial-gradient(circle at top left, ${platform.color}20, transparent 70%)` }}
+                />
 
-              <div className="relative p-6">
-                {/* Platform identity */}
-                <div className="flex items-center gap-4 mb-5">
-                  <div
-                    className="w-16 h-16 rounded-2xl flex items-center justify-center text-3xl shadow-lg"
-                    style={{ background: platform.color + '20', border: `1px solid ${platform.color}40` }}
-                  >
-                    {platform.emoji}
-                  </div>
+                <div className="relative p-6 flex flex-col h-full justify-between">
                   <div>
-                    <h3 className="text-white font-bold text-xl">{platform.name}</h3>
-                    <p className="text-sm font-medium" style={{ color: platform.color }}>
-                      {platform.tagline}
+                    {/* Platform identity */}
+                    <div className="flex items-center gap-4 mb-5">
+                      <div
+                        className="w-16 h-16 rounded-2xl flex items-center justify-center text-3xl shadow-lg"
+                        style={{ background: platform.color + '20', border: `1px solid ${platform.color}40` }}
+                      >
+                        {platform.emoji}
+                      </div>
+                      <div>
+                        <h3 className="text-white font-bold text-xl">{platform.name}</h3>
+                        <p className="text-sm font-semibold" style={{ color: platform.color }}>
+                          {platform.tagline}
+                        </p>
+                      </div>
+                    </div>
+
+                    {/* Description */}
+                    <p className="text-slate-300 text-sm leading-relaxed mb-5">
+                      {platform.description}
                     </p>
+
+                    {/* Benefits */}
+                    <ul className="space-y-2 mb-6">
+                      {platform.benefits.map((b, j) => (
+                        <li key={j} className="flex items-start gap-2 text-sm text-slate-200">
+                          <CheckCircle2 className="w-4 h-4 flex-shrink-0 mt-0.5" style={{ color: platform.color }} />
+                          <span>{b}</span>
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+
+                  {/* Prominent High-Contrast CTA Button (Fix for Issue 9) */}
+                  <div className="mt-auto pt-4 border-t border-white/10">
+                    <span className="w-full inline-flex items-center justify-center gap-2 py-3 px-5 rounded-xl font-bold text-sm bg-white text-slate-900 shadow-lg group-hover:bg-indigo-50 group-hover:text-indigo-700 transition-all duration-200">
+                      <span>Get Your Music On {platform.name}</span>
+                      <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
+                    </span>
                   </div>
                 </div>
-
-                {/* Description */}
-                <p className="text-gray-300 text-sm leading-relaxed mb-5">
-                  {platform.description}
-                </p>
-
-                {/* Benefits */}
-                <ul className="space-y-2 mb-5">
-                  {platform.benefits.map((b, j) => (
-                    <li key={j} className="flex items-start gap-2 text-sm text-gray-300">
-                      <CheckCircle2 className="w-4 h-4 flex-shrink-0 mt-0.5" style={{ color: platform.color }} />
-                      {b}
-                    </li>
-                  ))}
-                </ul>
-
-                {/* CTA */}
-                <a
-                  href="mailto:rkdigitalmediawork@gmail.com?subject=Distribute to Platform"
-                  className="inline-flex items-center gap-2 text-sm font-semibold transition-colors"
-                  style={{ color: platform.color }}
-                >
-                  Get Your Music On {platform.name}
-                  <ArrowRight className="w-4 h-4" />
-                </a>
-              </div>
+              </a>
             </motion.div>
           ))}
         </div>

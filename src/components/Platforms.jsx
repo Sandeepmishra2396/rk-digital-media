@@ -92,43 +92,49 @@ export default function Platforms() {
                   animate={{ opacity: 1, scale: 1 }}
                   exit={{ opacity: 0, scale: 0.9 }}
                   transition={{ duration: 0.25 }}
-                  className="platform-card bg-white rounded-2xl border border-gray-100 p-5 group cursor-default"
+                  className="h-full"
                 >
-                  {/* Top (Unified semantic badges - Fix for Issue 14) */}
-                  <div className="flex items-start justify-between mb-4">
-                    <div className="w-12 h-12 rounded-xl flex items-center justify-center text-2xl bg-slate-50 border border-slate-100 shadow-sm">
-                      {emoji}
-                    </div>
-                    <span className="text-xs font-medium px-2.5 py-0.5 rounded-full bg-slate-100 text-slate-700 border border-slate-200">
-                      {platform.category}
-                    </span>
-                  </div>
-
-                  {/* Name */}
-                  <h3 className="font-bold text-gray-900 text-base mb-1.5 leading-tight group-hover:text-indigo-600 transition-colors">
-                    {platform.name}
-                  </h3>
-
-                  {/* Description */}
-                  <p className="text-gray-600 text-xs leading-relaxed mb-3">
-                    {platform.description}
-                  </p>
-
-                  {/* Benefit */}
-                  {platform.benefit && (
-                    <div className="p-2.5 bg-slate-50 rounded-xl mb-3 border border-slate-100">
-                      <p className="text-slate-700 text-xs font-medium">{platform.benefit}</p>
-                    </div>
-                  )}
-
-                  {/* Featured badge */}
-                  {platform.featured && (
-                    <div className="flex items-center gap-1 mt-auto pt-1">
-                      <span className="inline-flex items-center gap-1 text-xs font-semibold px-2.5 py-0.5 rounded-full bg-amber-50 text-amber-800 border border-amber-200">
-                        ⭐ Featured
+                  <a
+                    href={`mailto:rkdigitalmediawork@gmail.com?subject=Distribution Inquiry for ${encodeURIComponent(platform.name)}`}
+                    className="platform-card block h-full bg-white rounded-2xl border border-gray-100 hover:border-indigo-300 p-5 group transition-all duration-200 hover:shadow-md cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500"
+                    aria-label={`Inquire about music distribution on ${platform.name}`}
+                  >
+                    {/* Top (Unified semantic badges - Fix for Issue 14) */}
+                    <div className="flex items-start justify-between mb-4">
+                      <div className="w-12 h-12 rounded-xl flex items-center justify-center text-2xl bg-slate-50 border border-slate-100 shadow-sm group-hover:scale-105 transition-transform">
+                        {emoji}
+                      </div>
+                      <span className="text-xs font-medium px-2.5 py-0.5 rounded-full bg-slate-100 text-slate-700 border border-slate-200">
+                        {platform.category}
                       </span>
                     </div>
-                  )}
+
+                    {/* Name */}
+                    <h3 className="font-bold text-gray-900 text-base mb-1.5 leading-tight group-hover:text-indigo-600 transition-colors">
+                      {platform.name}
+                    </h3>
+
+                    {/* Description */}
+                    <p className="text-gray-600 text-xs leading-relaxed mb-3">
+                      {platform.description}
+                    </p>
+
+                    {/* Benefit */}
+                    {platform.benefit && (
+                      <div className="p-2.5 bg-slate-50 rounded-xl mb-3 border border-slate-100 group-hover:bg-indigo-50/50 transition-colors">
+                        <p className="text-slate-700 text-xs font-medium">{platform.benefit}</p>
+                      </div>
+                    )}
+
+                    {/* Featured badge */}
+                    {platform.featured && (
+                      <div className="flex items-center gap-1 mt-auto pt-1">
+                        <span className="inline-flex items-center gap-1 text-xs font-semibold px-2.5 py-0.5 rounded-full bg-amber-50 text-amber-800 border border-amber-200">
+                          ⭐ Featured
+                        </span>
+                      </div>
+                    )}
+                  </a>
                 </motion.div>
               );
             })}

@@ -37,7 +37,7 @@ export default function About() {
                   <Music className="w-6 h-6 text-white" />
                 </div>
                 <div>
-                  <p className="font-bold text-lg">RK DIGITAL MEDIA</p>
+                  <p className="font-bold text-lg">RK Digital Media</p>
                   <p className="text-indigo-200 text-sm">Music Distribution & Digital Media</p>
                 </div>
               </div>
