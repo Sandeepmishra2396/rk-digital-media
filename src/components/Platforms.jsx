@@ -94,47 +94,39 @@ export default function Platforms() {
                   transition={{ duration: 0.25 }}
                   className="platform-card bg-white rounded-2xl border border-gray-100 p-5 group cursor-default"
                 >
-                  {/* Top */}
+                  {/* Top (Unified semantic badges - Fix for Issue 14) */}
                   <div className="flex items-start justify-between mb-4">
-                    <div
-                      className="w-12 h-12 rounded-xl flex items-center justify-center text-2xl shadow-sm"
-                      style={{ background: platform.bgColor || '#f5f3ff' }}
-                    >
+                    <div className="w-12 h-12 rounded-xl flex items-center justify-center text-2xl bg-slate-50 border border-slate-100 shadow-sm">
                       {emoji}
                     </div>
-                    <span
-                      className="text-xs font-semibold px-2.5 py-1 rounded-full border"
-                      style={{
-                        color: platform.color,
-                        background: platform.bgColor,
-                        borderColor: platform.color + '33',
-                      }}
-                    >
+                    <span className="text-xs font-medium px-2.5 py-0.5 rounded-full bg-slate-100 text-slate-700 border border-slate-200">
                       {platform.category}
                     </span>
                   </div>
 
                   {/* Name */}
-                  <h3 className="font-bold text-gray-900 text-base mb-1.5 leading-tight group-hover:text-indigo-700 transition-colors">
+                  <h3 className="font-bold text-gray-900 text-base mb-1.5 leading-tight group-hover:text-indigo-600 transition-colors">
                     {platform.name}
                   </h3>
 
                   {/* Description */}
-                  <p className="text-gray-500 text-xs leading-relaxed mb-3">
+                  <p className="text-gray-600 text-xs leading-relaxed mb-3">
                     {platform.description}
                   </p>
 
                   {/* Benefit */}
                   {platform.benefit && (
-                    <div className="p-2.5 bg-indigo-50 rounded-xl mb-3">
-                      <p className="text-indigo-700 text-xs font-medium">{platform.benefit}</p>
+                    <div className="p-2.5 bg-slate-50 rounded-xl mb-3 border border-slate-100">
+                      <p className="text-slate-700 text-xs font-medium">{platform.benefit}</p>
                     </div>
                   )}
 
                   {/* Featured badge */}
                   {platform.featured && (
-                    <div className="flex items-center gap-1 mt-auto">
-                      <span className="text-amber-500 text-xs font-semibold">⭐ Featured Platform</span>
+                    <div className="flex items-center gap-1 mt-auto pt-1">
+                      <span className="inline-flex items-center gap-1 text-xs font-semibold px-2.5 py-0.5 rounded-full bg-amber-50 text-amber-800 border border-amber-200">
+                        ⭐ Featured
+                      </span>
                     </div>
                   )}
                 </motion.div>

@@ -71,7 +71,7 @@ export default function Stats() {
         <div className="text-center mb-12">
           <span className="section-tag">By the Numbers</span>
           <h2 className="section-title mt-2">
-            RK DIGITAL MEDIA{' '}
+            RK Digital Media{' '}
             <span className="text-gradient">At a Glance</span>
           </h2>
           <p className="section-desc mt-4">

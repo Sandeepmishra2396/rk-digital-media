@@ -133,18 +133,18 @@ export default function Services() {
           })}
         </div>
 
-        {/* Bottom CTA */}
-        <div className="mt-14 text-center">
-          <div className="inline-flex flex-col sm:flex-row items-center gap-4 p-6 bg-gradient-to-r from-indigo-50 to-purple-50 rounded-2xl border border-indigo-100">
-            <div className="text-left">
-              <p className="font-bold text-gray-900">Ready to distribute your music?</p>
-              <p className="text-gray-500 text-sm">Contact RK DIGITAL MEDIA to get started today.</p>
+        {/* Bottom Section Banner (Fix for Issue 12) */}
+        <div className="mt-14 max-w-4xl mx-auto">
+          <div className="flex flex-col sm:flex-row items-center justify-between gap-6 p-8 bg-gradient-to-r from-indigo-50 via-purple-50 to-blue-50 rounded-2xl border border-indigo-100 shadow-sm text-center sm:text-left">
+            <div>
+              <h3 className="text-lg font-bold text-gray-900">Ready to distribute your music worldwide?</h3>
+              <p className="text-gray-600 text-sm mt-1">Contact RK DIGITAL MEDIA to get started with distribution today.</p>
             </div>
             <a
               href="mailto:rkdigitalmediawork@gmail.com?subject=Music Distribution Inquiry"
-              className="btn-primary whitespace-nowrap"
+              className="btn-primary whitespace-nowrap px-7 py-3.5 flex-shrink-0"
             >
-              Get Started
+              <span>Get Started</span>
               <ArrowRight className="w-4 h-4" />
             </a>
           </div>

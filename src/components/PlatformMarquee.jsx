@@ -27,8 +27,8 @@ export default function PlatformMarquee() {
       <div className="flex items-center">
         {/* Label */}
         <div className="flex-shrink-0 px-6 pr-8 hidden md:block">
-          <p className="text-gray-500 text-xs font-semibold uppercase tracking-widest whitespace-nowrap">
-            🤝 Distributed To
+          <p className="text-gray-400 text-xs font-semibold whitespace-nowrap">
+            🤝 Distributed to
           </p>
         </div>
 

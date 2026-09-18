@@ -73,7 +73,7 @@ export default function FeaturedPlatforms() {
       <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         {/* Header */}
         <div className="text-center mb-14">
-          <span className="inline-block text-sm font-semibold text-indigo-400 uppercase tracking-widest mb-3 px-3 py-1 bg-indigo-500/10 rounded-full border border-indigo-500/20">
+          <span className="inline-block text-sm font-semibold text-indigo-300 mb-3 px-3.5 py-1 bg-indigo-500/10 rounded-full border border-indigo-500/20">
             Featured Platforms
           </span>
           <h2 className="text-3xl md:text-4xl lg:text-5xl font-bold text-white leading-tight mt-2">

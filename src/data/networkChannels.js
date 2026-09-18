@@ -137,7 +137,7 @@ export const networkChannels = [
   },
   {
     id: 14,
-    name: "DHARM MUSIC",
+    name: "Dharm Music",
     handle: "@DharmMusic1",
     subscribers: 117,
     subscribersDisplay: "117",
@@ -287,7 +287,7 @@ export const networkChannels = [
   },
   {
     id: 29,
-    name: "BHAKTI MAHAGANGA",
+    name: "Bhakti Mahaganga",
     handle: "@bhaktimahaganga",
     subscribers: 6190,
     subscribersDisplay: "6,190",
@@ -609,7 +609,7 @@ export const networkChannels = [
   },
   {
     id: 61,
-    name: "POONAM MISHRA OFFICIAL",
+    name: "Poonam Mishra Official",
     handle: "@POONAMMISHRAOFFICIAL-m1t",
     subscribers: 11500,
     subscribersDisplay: "11.5K",

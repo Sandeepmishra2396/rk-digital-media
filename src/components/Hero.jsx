@@ -218,7 +218,7 @@ export default function Hero() {
                     {['🎵', '🍎', '▶️', '🎤'].map((emoji, i) => (
                       <span
                         key={i}
-                        className="w-6 h-6 rounded-md bg-white/10 flex items-center justify-center text-xs"
+                        className="w-6 h-6 rounded-lg bg-white/10 flex items-center justify-center text-xs"
                       >
                         {emoji}
                       </span>

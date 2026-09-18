@@ -55,14 +55,19 @@ export default function Contact() {
         </div>
 
         <div className="grid lg:grid-cols-2 gap-10 items-start">
-          {/* Left: Contact info */}
+          {/* Left: Contact info (Card wrapper to align with right form card) */}
           <motion.div
             initial={{ opacity: 0, x: -30 }}
             whileInView={{ opacity: 1, x: 0 }}
             viewport={{ once: true }}
             transition={{ duration: 0.6 }}
+            className="h-full"
           >
-            <h3 className="text-xl font-bold text-gray-900 mb-6">Contact Information</h3>
+            <div className="bg-white rounded-2xl border border-gray-100 p-8 shadow-sm h-full flex flex-col">
+              <h3 className="text-xl font-bold text-gray-900 mb-2">Contact Information</h3>
+              <p className="text-gray-500 text-sm mb-6">
+                Direct lines to our artist relations and distribution team.
+              </p>
 
             <div className="space-y-4 mb-8">
               {contactDetails.map((item, i) => (
@@ -112,15 +117,16 @@ export default function Contact() {
                 <Phone className="w-4 h-4" />
                 Call Us
               </a>
-              <a
-                href="https://wa.me/917631350084?text=Hi%20RK%20Digital%20Media%2C%20I%20want%20to%20distribute%20my%20music."
-                target="_blank"
-                rel="noopener noreferrer"
-                className="inline-flex items-center justify-center gap-2 px-5 py-3 bg-green-500 text-white font-semibold rounded-xl shadow hover:bg-green-600 transition-all duration-200"
-              >
-                <MessageCircle className="w-4 h-4" />
-                WhatsApp
-              </a>
+                <a
+                  href="https://wa.me/917631350084?text=Hi%20RK%20Digital%20Media%2C%20I%20want%20to%20distribute%20my%20music."
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="inline-flex items-center justify-center gap-2 px-5 py-3 bg-emerald-600 text-white font-semibold rounded-xl shadow hover:bg-emerald-700 transition-all duration-200"
+                >
+                  <MessageCircle className="w-4 h-4" />
+                  WhatsApp
+                </a>
+              </div>
             </div>
           </motion.div>
 
@@ -130,8 +136,9 @@ export default function Contact() {
             whileInView={{ opacity: 1, x: 0 }}
             viewport={{ once: true }}
             transition={{ duration: 0.6, delay: 0.1 }}
+            className="h-full"
           >
-            <div className="bg-white rounded-3xl border border-gray-100 p-8 shadow-sm">
+            <div className="bg-white rounded-2xl border border-gray-100 p-8 shadow-sm h-full flex flex-col">
               <h3 className="text-xl font-bold text-gray-900 mb-2">Send Us a Message</h3>
               <p className="text-gray-500 text-sm mb-6">
                 Fill in your details and we'll get back to you as soon as possible.

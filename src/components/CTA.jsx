@@ -1,5 +1,5 @@
 import { motion } from 'framer-motion';
-import { ArrowRight, Music, Headphones, Globe, Star } from 'lucide-react';
+import { ArrowRight, Music, Headphones, Globe, Star, Phone } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 
 export default function CTA() {
@@ -78,10 +78,10 @@ export default function CTA() {
           </button>
           <a
             href="tel:7631350084"
-            className="inline-flex items-center justify-center gap-2 px-8 py-4 bg-white/15 text-white font-bold rounded-xl border-2 border-white/30 hover:bg-white/25 hover:border-white/50 transition-all duration-300 text-base"
+            className="inline-flex items-center justify-center gap-2 px-8 py-4 bg-white/10 hover:bg-white/20 text-white font-bold rounded-xl border border-white/30 hover:border-white/60 transition-all duration-300 text-base shadow-sm"
           >
-            Call Us Now
-            <ArrowRight className="w-5 h-5" />
+            <Phone className="w-5 h-5" />
+            <span>Call Us Now</span>
           </a>
         </motion.div>
 

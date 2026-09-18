@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { ChevronDown, HelpCircle } from 'lucide-react';
+import { ChevronDown, HelpCircle, Mail, Phone } from 'lucide-react';
 import faqs from '../data/faqs';
 
 export default function FAQ() {
@@ -119,18 +119,20 @@ export default function FAQ() {
           <p className="text-gray-500 text-sm mb-4">
             Our team is ready to help you with any questions about music distribution.
           </p>
-          <div className="flex flex-col sm:flex-row gap-3 justify-center">
+          <div className="flex flex-col sm:flex-row gap-4 sm:gap-6 justify-center items-center">
             <a
               href="mailto:rkdigitalmediawork@gmail.com"
-              className="btn-primary text-sm px-5 py-2.5"
+              className="btn-primary text-sm px-6 py-3 min-h-[44px] min-w-[140px] justify-center"
             >
-              Email Us
+              <Mail className="w-4 h-4" />
+              <span>Email Us</span>
             </a>
             <a
               href="tel:7631350084"
-              className="btn-secondary text-sm px-5 py-2.5"
+              className="btn-secondary text-sm px-6 py-3 min-h-[44px] min-w-[140px] justify-center"
             >
-              Call Us
+              <Phone className="w-4 h-4" />
+              <span>Call Us</span>
             </a>
           </div>
         </div>

@@ -243,7 +243,7 @@ export default function AuthModal() {
         animate={{ opacity: 1, scale: 1, y: 0 }}
         exit={{ opacity: 0, scale: 0.95, y: 20 }}
         transition={{ duration: 0.25 }}
-        className="relative w-full max-w-lg rounded-3xl border border-white/10 shadow-2xl overflow-hidden my-8 z-10"
+        className="relative w-full max-w-lg rounded-2xl border border-white/10 shadow-2xl overflow-hidden my-8 z-10"
         style={{ background: 'linear-gradient(145deg, #0d1224 0%, #080b14 100%)' }}
       >
         {/* Top Gradient Bar */}

@@ -31,7 +31,7 @@ export default function About() {
             className="relative"
           >
             {/* Main card */}
-            <div className="relative bg-gradient-to-br from-indigo-600 to-purple-700 rounded-3xl p-8 text-white shadow-2xl shadow-indigo-500/20">
+            <div className="relative bg-gradient-to-br from-indigo-600 to-purple-700 rounded-2xl p-8 text-white shadow-2xl shadow-indigo-500/20">
               <div className="flex items-center gap-3 mb-6">
                 <div className="w-12 h-12 bg-white/20 rounded-2xl flex items-center justify-center">
                   <Music className="w-6 h-6 text-white" />

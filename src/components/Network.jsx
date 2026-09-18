@@ -225,7 +225,7 @@ export default function Network() {
                       <div className="flex-1 min-w-0">
                         <div className="flex items-center gap-1.5 flex-wrap">
                           <h3
-                            className="font-bold text-gray-900 text-sm leading-tight truncate"
+                            className="font-bold text-gray-900 text-sm leading-snug line-clamp-2 min-h-[2.5rem] break-words"
                             title={channel.name}
                           >
                             {channel.name}
@@ -236,7 +236,7 @@ export default function Network() {
                             </span>
                           )}
                         </div>
-                        <p className="text-indigo-500 text-xs font-medium mt-0.5">
+                        <p className="text-indigo-600 text-xs font-medium mt-1">
                           {channel.handle !== 'N/A' ? channel.handle : 'Handle unavailable'}
                         </p>
                       </div>
@@ -248,7 +248,7 @@ export default function Network() {
                         <Users className="w-3.5 h-3.5 text-gray-400" />
                         <span
                           className={`text-xs font-semibold ${
-                            isRemoved ? 'text-red-500' : 'text-gray-700'
+                            isRemoved ? 'text-rose-500' : 'text-gray-700'
                           }`}
                         >
                           {formatSubscribers(channel.subscribers, channel.subscribersDisplay)}
@@ -257,7 +257,7 @@ export default function Network() {
                       <span
                         className={`text-xs font-medium px-2 py-0.5 rounded-full ${
                           isRemoved
-                            ? 'bg-red-100 text-red-600'
+                            ? 'bg-rose-50 text-rose-600 border border-rose-100'
                             : 'bg-gray-100 text-gray-600'
                         }`}
                       >
@@ -269,26 +269,26 @@ export default function Network() {
                     <div className="flex items-center gap-1.5 mb-4">
                       <div
                         className={`w-2 h-2 rounded-full flex-shrink-0 ${
-                          isRemoved ? 'bg-red-400' : 'bg-green-400'
+                          isRemoved ? 'bg-rose-400' : 'bg-emerald-400'
                         }`}
                       />
                       <span className="text-xs text-gray-500">
-                        {isRemoved ? 'Channel Removed' : 'Active'}
+                        {isRemoved ? 'Channel Removed' : 'Active Channel'}
                       </span>
                     </div>
 
-                    {/* Visit button */}
+                    {/* Visit action (Refined for Issue 15) */}
                     <div className="mt-auto">
                       {channel.url && !isRemoved ? (
                         <a
                           href={channel.url}
                           target="_blank"
                           rel="noopener noreferrer"
-                          className="flex items-center justify-center gap-2 w-full py-2 px-3 rounded-xl bg-red-50 text-red-600 text-xs font-semibold border border-red-100 hover:bg-red-600 hover:text-white hover:border-red-600 transition-all duration-200"
+                          className="flex items-center justify-center gap-2 w-full py-2 px-3 rounded-xl bg-gray-50 hover:bg-red-50 text-gray-600 hover:text-red-600 text-xs font-medium border border-gray-200 hover:border-red-200 transition-all duration-200"
                         >
-                          <Youtube className="w-3.5 h-3.5" />
-                          Visit Channel
-                          <ExternalLink className="w-3 h-3" />
+                          <Youtube className="w-3.5 h-3.5 text-gray-400 group-hover:text-red-500" />
+                          <span>Visit Channel</span>
+                          <ExternalLink className="w-3 h-3 opacity-60" />
                         </a>
                       ) : (
                         <div className="flex items-center justify-center gap-2 w-full py-2 px-3 rounded-xl bg-gray-50 text-gray-400 text-xs font-medium border border-gray-100 cursor-not-allowed">

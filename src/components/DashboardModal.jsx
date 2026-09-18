@@ -124,7 +124,7 @@ export default function DashboardModal() {
         animate={{ opacity: 1, scale: 1, y: 0 }}
         exit={{ opacity: 0, scale: 0.96, y: 15 }}
         transition={{ duration: 0.25 }}
-        className="relative w-full max-w-5xl rounded-3xl border border-white/10 shadow-2xl overflow-hidden my-auto z-10 max-h-[92vh] flex flex-col"
+        className="relative w-full max-w-5xl rounded-2xl border border-white/10 shadow-2xl overflow-hidden my-auto z-10 max-h-[92vh] flex flex-col"
         style={{ background: 'linear-gradient(155deg, #0d1224 0%, #060913 100%)' }}
       >
         {/* Top Gradient Banner */}
