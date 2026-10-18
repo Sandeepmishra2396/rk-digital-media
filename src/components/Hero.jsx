@@ -179,7 +179,7 @@ export default function Hero() {
                 <div className="grid grid-cols-2 gap-3 mb-4">
                   <div className="p-3 rounded-xl bg-indigo-500/10 border border-indigo-500/20">
                     <p className="text-gray-400 text-xs mb-1">Network Channels</p>
-                    <p className="text-white font-bold text-xl">71+</p>
+                    <p className="text-white font-bold text-xl">498+</p>
                     <p className="text-indigo-400 text-xs">↑ Growing</p>
                   </div>
                   <div className="p-3 rounded-xl bg-purple-500/10 border border-purple-500/20">

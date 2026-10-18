@@ -4,7 +4,7 @@ import { Music, Globe, Users, CheckCircle2, Award, Headphones } from 'lucide-rea
 const highlights = [
   { icon: Globe, label: 'Digital Distribution', desc: 'Music delivered to global & Indian streaming platforms.' },
   { icon: Users, label: 'Artist & Label Support', desc: 'Serving independent artists, singers, and music labels.' },
-  { icon: Award, label: 'Music Network', desc: 'Managing 71+ YouTube channels across music genres.' },
+  { icon: Award, label: 'Music Network', desc: 'Managing 498+ YouTube channels across music genres.' },
   { icon: Headphones, label: 'Platform Delivery', desc: 'From Spotify to JioSaavn — we cover it all.' },
 ];
 
@@ -44,7 +44,7 @@ export default function About() {
 
               <div className="grid grid-cols-2 gap-4 mb-6">
                 <div className="bg-white/10 rounded-2xl p-4">
-                  <p className="text-3xl font-black">71+</p>
+                  <p className="text-3xl font-black">498+</p>
                   <p className="text-indigo-200 text-sm">Managed Channels</p>
                 </div>
                 <div className="bg-white/10 rounded-2xl p-4">
@@ -52,11 +52,11 @@ export default function About() {
                   <p className="text-indigo-200 text-sm">Platforms</p>
                 </div>
                 <div className="bg-white/10 rounded-2xl p-4">
-                  <p className="text-3xl font-black">50+</p>
+                  <p className="text-3xl font-black">219+</p>
                   <p className="text-indigo-200 text-sm">Artists & Labels</p>
                 </div>
                 <div className="bg-white/10 rounded-2xl p-4">
-                  <p className="text-3xl font-black">150+</p>
+                  <p className="text-3xl font-black">15+</p>
                   <p className="text-indigo-200 text-sm">Countries</p>
                 </div>
               </div>
@@ -112,7 +112,7 @@ export default function About() {
             <p className="text-gray-600 leading-relaxed mb-6">
               We work directly with artists across Bhojpuri, Maithili, Hindi, and other regional languages,
               helping them reach audiences on major platforms — from Spotify and Apple Music to JioSaavn and
-              Wynk Music. Our managed channel network represents over 71 YouTube channels, reflecting our
+              Wynk Music. Our managed channel network represents over 498 YouTube channels, reflecting our
               commitment to long-term creator relationships.
             </p>
 

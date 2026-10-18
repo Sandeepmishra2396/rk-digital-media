@@ -16,7 +16,7 @@ export const stats = [
   {
     id: 2,
     label: "Managed Channels",
-    value: 71,
+    value: 498,
     suffix: "+",
     icon: "Youtube",
     color: "red",
@@ -25,7 +25,7 @@ export const stats = [
   {
     id: 3,
     label: "Artists & Labels",
-    value: 50,
+    value: 219,
     suffix: "+",
     icon: "Mic",
     color: "purple",
@@ -34,7 +34,7 @@ export const stats = [
   {
     id: 4,
     label: "Countries Reached",
-    value: 150,
+    value: 15,
     suffix: "+",
     icon: "MapPin",
     color: "blue",

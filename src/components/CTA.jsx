@@ -95,8 +95,8 @@ export default function CTA() {
         >
           {[
             { icon: Globe, label: '20+ Platforms' },
-            { icon: Headphones, label: '71+ Channels' },
-            { icon: Music, label: '150+ Countries' },
+            { icon: Headphones, label: '498+ Channels' },
+            { icon: Music, label: '15+ Countries' },
             { icon: Star, label: 'Artist Support' },
           ].map((item, i) => (
             <div key={i} className="flex items-center gap-2 text-white/80 text-sm">
