@@ -1,0 +1,12 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" width="64" height="64">
+  <defs>
+    <linearGradient id="rkGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#4f46e5"/>
+      <stop offset="50%" stop-color="#7c3aed"/>
+      <stop offset="100%" stop-color="#2563eb"/>
+    </linearGradient>
+  </defs>
+  <rect width="64" height="64" rx="16" fill="url(#rkGrad)"/>
+  <!-- Musical note -->
+  <path d="M42 16v22.5a5.5 5.5 0 1 1-4-5.3V23l-16 4v14.5a5.5 5.5 0 1 1-4-5.3V19l24-5z" fill="#ffffff"/>
+</svg>

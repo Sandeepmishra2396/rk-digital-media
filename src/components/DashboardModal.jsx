@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { motion } from 'framer-motion';
 import {
   X,
@@ -21,6 +21,14 @@ import {
   Phone,
   Mail,
   Award,
+  Play,
+  Pause,
+  Download,
+  Image as ImageIcon,
+  FileAudio,
+  AlertTriangle,
+  RefreshCw,
+  Check,
 } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import { api } from '../services/api';
@@ -28,130 +36,223 @@ import { api } from '../services/api';
 const DEMO_RELEASES = [
   {
     id: 'TRK-901',
+    track_id: 'TRK-901',
     title: 'Mithila Ke Shaan (Original Mix)',
     artist: 'Raushan Pathak & Team',
+    artist_email: 'rkdigitalmediawork@gmail.com',
     genre: 'Folk / Regional',
     isrc: 'IN-RKD-26-00192',
     upc: '8901234567890',
-    releaseDate: 'Feb 14, 2026',
+    release_date: 'Feb 14, 2026',
     status: 'Live',
-    statusColor: 'text-emerald-400 bg-emerald-500/10 border-emerald-500/20',
+    status_color: 'text-emerald-400 bg-emerald-500/10 border-emerald-500/20',
     platforms: ['Spotify', 'Apple Music', 'YouTube Music', 'JioSaavn', 'Wynk', 'CRBT'],
     streams: '142,500',
     earnings: '₹21,380',
+    artwork_url: 'https://images.unsplash.com/photo-1511671782779-c97d3d27a1d4?w=300&auto=format&fit=crop&q=80',
+    audio_url: 'https://www.soundhelix.com/examples/mp3/SoundHelix-Song-1.mp3',
   },
   {
     id: 'TRK-902',
+    track_id: 'TRK-902',
     title: 'Pardesiya Re (Bhojpuri Beats)',
     artist: 'Pooja Mishra ft. RK Studio',
+    artist_email: 'artist@rkdigitalmedia.in',
     genre: 'Bhojpuri Pop',
     isrc: 'IN-RKD-26-00193',
     upc: '8901234567891',
-    releaseDate: 'Jan 28, 2026',
+    release_date: 'Jan 28, 2026',
     status: 'Live',
-    statusColor: 'text-emerald-400 bg-emerald-500/10 border-emerald-500/20',
+    status_color: 'text-emerald-400 bg-emerald-500/10 border-emerald-500/20',
     platforms: ['Spotify', 'YouTube Music', 'Instagram Reels', 'JioSaavn'],
     streams: '98,200',
     earnings: '₹14,730',
+    artwork_url: 'https://images.unsplash.com/photo-1470225620780-dba8ba36b745?w=300&auto=format&fit=crop&q=80',
+    audio_url: 'https://www.soundhelix.com/examples/mp3/SoundHelix-Song-2.mp3',
   },
   {
     id: 'TRK-903',
+    track_id: 'TRK-903',
     title: 'Bhakti Mahaganga Aarti (Special)',
     artist: 'RK Digital Choir',
+    artist_email: 'rkdigitalmediawork@gmail.com',
     genre: 'Devotional / Bhakti',
     isrc: 'IN-RKD-26-00194',
     upc: '8901234567892',
-    releaseDate: 'Jan 10, 2026',
+    release_date: 'Jan 10, 2026',
     status: 'Live',
-    statusColor: 'text-emerald-400 bg-emerald-500/10 border-emerald-500/20',
+    status_color: 'text-emerald-400 bg-emerald-500/10 border-emerald-500/20',
     platforms: ['Spotify', 'Apple Music', 'JioSaavn', 'Wynk Caller Tune', 'Vi'],
     streams: '67,100',
     earnings: '₹10,065',
-  },
-  {
-    id: 'TRK-904',
-    title: 'Naina Me Basal (Acoustic Version)',
-    artist: 'Guest Vocalist',
-    genre: 'Romantic',
-    isrc: 'IN-RKD-26-00195',
-    upc: '8901234567893',
-    releaseDate: 'Submitting (March 2026)',
-    status: 'In Review',
-    statusColor: 'text-amber-400 bg-amber-500/10 border-amber-500/20',
-    platforms: ['All 20+ Platforms Selected'],
-    streams: 'Processing',
-    earnings: 'Pending QC',
+    artwork_url: 'https://images.unsplash.com/photo-1493225457124-a3eb161ffa5f?w=300&auto=format&fit=crop&q=80',
+    audio_url: 'https://www.soundhelix.com/examples/mp3/SoundHelix-Song-3.mp3',
   },
 ];
 
 export default function DashboardModal() {
   const { user, isDashboardOpen, closeDashboard, logout } = useAuth();
-  const [activeTab, setActiveTab] = useState('releases'); // 'releases' | 'royalties' | 'platforms' | 'submit'
+  const [activeTab, setActiveTab] = useState('releases'); // 'releases' | 'royalties' | 'platforms' | 'submit' | 'admin'
   const [showSubmissionSuccess, setShowSubmissionSuccess] = useState(false);
   const [userReleases, setUserReleases] = useState([]);
   const [loadingReleases, setLoadingReleases] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [uploadStatusText, setUploadStatusText] = useState('');
 
   // New release submission form states
   const [newTrackTitle, setNewTrackTitle] = useState('');
   const [newArtistName, setNewArtistName] = useState('');
   const [newGenre, setNewGenre] = useState('Regional / Folk');
   const [newLanguage, setNewLanguage] = useState('Maithili / Bhojpuri');
+  
+  // Real File Upload States
+  const [artworkFile, setArtworkFile] = useState(null);
+  const [artworkPreview, setArtworkPreview] = useState(null);
+  const [audioFile, setAudioFile] = useState(null);
+  const [audioPreview, setAudioPreview] = useState(null);
 
-  // Load real user releases from Supabase & Backend API
+  const artworkInputRef = useRef(null);
+  const audioInputRef = useRef(null);
+
+  // Check if current user is Owner / Admin
+  const isOwner =
+    user?.role === 'Founder & Label Head' ||
+    user?.email === 'rkdigitalmediawork@gmail.com';
+
+  // Load real user releases from Supabase
+  const fetchReleases = async () => {
+    if (!user) return;
+    setLoadingReleases(true);
+    try {
+      const data = await api.releases.getUserReleases(user);
+      if (data && data.length > 0) {
+        setUserReleases(data);
+      } else if (
+        user.email === 'artist@rkdigitalmedia.in' ||
+        user.email === 'rkdigitalmediawork@gmail.com'
+      ) {
+        setUserReleases(DEMO_RELEASES);
+      } else {
+        setUserReleases([]);
+      }
+    } catch {
+      setUserReleases(DEMO_RELEASES);
+    } finally {
+      setLoadingReleases(false);
+    }
+  };
+
   useEffect(() => {
     if (isDashboardOpen && user) {
-      setLoadingReleases(true);
-      api.releases
-        .getUserReleases()
-        .then((data) => {
-          if (data && data.length > 0) {
-            setUserReleases(data);
-          } else if (
-            user.email === 'artist@rkdigitalmedia.in' ||
-            user.email === 'rkdigitalmediawork@gmail.com'
-          ) {
-            setUserReleases(DEMO_RELEASES);
-          } else {
-            setUserReleases([]);
-          }
-        })
-        .catch(() => {
-          setUserReleases(DEMO_RELEASES);
-        })
-        .finally(() => setLoadingReleases(false));
+      fetchReleases();
     }
   }, [isDashboardOpen, user]);
 
   if (!isDashboardOpen || !user) return null;
 
+  // Handle Artwork file selection
+  const handleArtworkChange = (e) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      setArtworkFile(file);
+      const objectUrl = URL.createObjectURL(file);
+      setArtworkPreview(objectUrl);
+    }
+  };
+
+  // Handle Audio file selection
+  const handleAudioChange = (e) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      setAudioFile(file);
+      const objectUrl = URL.createObjectURL(file);
+      setAudioPreview(objectUrl);
+    }
+  };
+
+  // Real Track Submission with Audio & Artwork Storage Upload
   const handleTrackSubmit = async (e) => {
     e.preventDefault();
     if (!newTrackTitle.trim()) return;
 
     setIsSubmitting(true);
+    setUploadStatusText('Preparing release package...');
+
     try {
-      const created = await api.releases.createRelease({
-        title: newTrackTitle.trim(),
-        artist: newArtistName.trim() || user.name,
-        genre: newGenre,
-        language: newLanguage,
-      });
+      let uploadedArtworkUrl = null;
+      let uploadedAudioUrl = null;
+
+      // 1. Upload Artwork Image if selected
+      if (artworkFile) {
+        setUploadStatusText('Uploading 3000×3000 Artwork Cover to Cloud Storage...');
+        try {
+          uploadedArtworkUrl = await api.releases.uploadArtwork(
+            artworkFile,
+            newArtistName || user.name
+          );
+        } catch (err) {
+          console.warn('Artwork upload note:', err.message);
+        }
+      }
+
+      // 2. Upload Audio File if selected
+      if (audioFile) {
+        setUploadStatusText('Uploading Master Audio Track to Cloud Storage...');
+        try {
+          uploadedAudioUrl = await api.releases.uploadAudio(audioFile, newTrackTitle);
+        } catch (err) {
+          console.warn('Audio upload note:', err.message);
+        }
+      }
+
+      // 3. Register Release in Supabase Database
+      setUploadStatusText('Registering release details in Supabase database...');
+      const created = await api.releases.createRelease(
+        {
+          title: newTrackTitle.trim(),
+          artist: (newArtistName || user.name).trim(),
+          genre: newGenre,
+          language: newLanguage,
+          artwork_url: uploadedArtworkUrl || artworkPreview,
+          audio_url: uploadedAudioUrl || audioPreview,
+        },
+        user
+      );
 
       if (created) {
         setUserReleases((prev) => [created, ...prev]);
       }
+
       setShowSubmissionSuccess(true);
       setTimeout(() => {
         setShowSubmissionSuccess(false);
         setActiveTab('releases');
+        // Reset form
         setNewTrackTitle('');
         setNewArtistName('');
-      }, 1500);
+        setArtworkFile(null);
+        setArtworkPreview(null);
+        setAudioFile(null);
+        setAudioPreview(null);
+      }, 2000);
     } catch (err) {
-      console.error('Error submitting track to backend:', err);
+      console.error('Error submitting track:', err);
+      alert('Error saving release: ' + err.message);
     } finally {
       setIsSubmitting(false);
+      setUploadStatusText('');
+    }
+  };
+
+  // Owner action: update release status (Live, In Review, Action Required)
+  const handleOwnerStatusUpdate = async (releaseId, newStatus) => {
+    try {
+      const updated = await api.releases.updateReleaseStatus(releaseId, newStatus);
+      setUserReleases((prev) =>
+        prev.map((r) => ((r.id === releaseId || r.track_id === releaseId) ? { ...r, ...updated } : r))
+      );
+    } catch (err) {
+      console.error('Error updating status:', err);
     }
   };
 
@@ -196,8 +297,13 @@ export default function DashboardModal() {
                 <h2 className="text-white font-bold text-lg sm:text-xl">{user.name}</h2>
                 <span className="px-2 py-0.5 rounded-full text-[11px] font-bold bg-indigo-500/20 text-indigo-300 border border-indigo-500/30 flex items-center gap-1">
                   <Award className="w-3 h-3 text-amber-400" />
-                  {user.role || 'Artist Partner'}
+                  <span>{user.role || 'Independent Artist'}</span>
                 </span>
+                {isOwner && (
+                  <span className="px-2 py-0.5 rounded-full text-[11px] font-bold bg-amber-500/20 text-amber-300 border border-amber-500/30">
+                    👑 Label Owner
+                  </span>
+                )}
                 <span className="px-2 py-0.5 rounded-full text-[11px] font-semibold bg-emerald-500/15 text-emerald-300 border border-emerald-500/30">
                   Verified
                 </span>
@@ -249,7 +355,7 @@ export default function DashboardModal() {
               <span className="text-xs text-gray-400 font-medium">Releases</span>
               <Music className="w-4 h-4 text-indigo-400" />
             </div>
-            <p className="text-xl sm:text-2xl font-black text-white">{user.releasesCount || 4}</p>
+            <p className="text-xl sm:text-2xl font-black text-white">{userReleases.length || user.releasesCount || 0}</p>
             <p className="text-[11px] text-emerald-400">All DSPs Active</p>
           </div>
 
@@ -285,9 +391,10 @@ export default function DashboardModal() {
         <div className="flex border-b border-white/10 px-6 gap-2 pt-3 flex-shrink-0 bg-white/[0.01] overflow-x-auto">
           {[
             { id: 'releases', label: 'My Releases & Status', icon: Music },
+            { id: 'submit', label: 'Upload / Submit Release', icon: Upload },
+            ...(isOwner ? [{ id: 'admin', label: '👑 Label Master (Review Submissions)', icon: ShieldCheck }] : []),
             { id: 'royalties', label: 'Royalties & Analytics', icon: TrendingUp },
             { id: 'platforms', label: 'Connected Platforms', icon: Globe },
-            { id: 'submit', label: 'Upload / Submit Release', icon: Upload },
           ].map((tab) => (
             <button
               key={tab.id}
@@ -318,10 +425,10 @@ export default function DashboardModal() {
                 </div>
                 <button
                   onClick={() => setActiveTab('submit')}
-                  className="px-3 py-1.5 rounded-lg bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-semibold flex items-center gap-1.5"
+                  className="px-3 py-1.5 rounded-lg bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-semibold flex items-center gap-1.5 transition-all shadow-md"
                 >
                   <Upload className="w-3.5 h-3.5" />
-                  <span>New Song</span>
+                  <span>Upload New Song</span>
                 </button>
               </div>
 
@@ -340,46 +447,63 @@ export default function DashboardModal() {
                     </p>
                     <button
                       onClick={() => setActiveTab('submit')}
-                      className="mt-4 px-4 py-2 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-bold inline-flex items-center gap-1.5"
+                      className="mt-4 px-5 py-2.5 rounded-xl bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 text-white text-xs font-bold inline-flex items-center gap-2 shadow-lg shadow-indigo-500/25 transition-all"
                     >
-                      <Upload className="w-3.5 h-3.5" />
-                      Submit First Song
+                      <Upload className="w-4 h-4" />
+                      <span>Upload & Submit First Song</span>
                     </button>
                   </div>
                 ) : (
                   userReleases.map((track) => (
                     <div
                       key={track.id || track.track_id}
-                      className="p-4 rounded-2xl bg-white/[0.03] border border-white/10 hover:border-indigo-500/40 transition-all flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4"
+                      className="p-4 rounded-2xl bg-white/[0.03] border border-white/10 hover:border-indigo-500/40 transition-all flex flex-col md:flex-row items-start md:items-center justify-between gap-4"
                     >
                       <div className="flex items-start gap-3.5">
-                        <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-indigo-600 to-purple-800 flex items-center justify-center text-white flex-shrink-0 shadow-md">
-                          <Music className="w-6 h-6 text-white" />
-                        </div>
+                        {/* Artwork Thumbnail */}
+                        {track.artwork_url ? (
+                          <img
+                            src={track.artwork_url}
+                            alt={track.title}
+                            className="w-14 h-14 rounded-xl object-cover flex-shrink-0 border border-white/10 shadow-md"
+                          />
+                        ) : (
+                          <div className="w-14 h-14 rounded-xl bg-gradient-to-br from-indigo-600 to-purple-800 flex items-center justify-center text-white flex-shrink-0 shadow-md">
+                            <Music className="w-6 h-6 text-white" />
+                          </div>
+                        )}
+
                         <div>
                           <div className="flex items-center gap-2 flex-wrap">
                             <h4 className="text-white font-bold text-sm sm:text-base">{track.title}</h4>
                             <span
                               className={`px-2 py-0.5 rounded-full text-[10px] font-bold border ${track.statusColor || track.status_color || 'text-amber-400 bg-amber-500/10 border-amber-500/20'}`}
                             >
-                              {track.status}
+                              {track.status || 'In Review'}
                             </span>
                           </div>
                           <p className="text-xs text-indigo-300 font-medium">{track.artist}</p>
                           <div className="flex items-center gap-3 text-[11px] text-gray-500 mt-1 flex-wrap">
                             <span>Genre: {track.genre}</span>
                             <span>•</span>
-                            <span className="font-mono">ISRC: {track.isrc || 'Pending'}</span>
+                            <span className="font-mono">ISRC: {track.isrc || 'Pending QC'}</span>
                             <span>•</span>
                             <span>Released: {track.releaseDate || track.release_date || 'In Review'}</span>
                           </div>
+
+                          {/* Audio Player if track has audio_url */}
+                          {track.audio_url && (
+                            <div className="mt-2 flex items-center gap-2">
+                              <audio controls src={track.audio_url} className="h-7 w-56 max-w-full opacity-90" />
+                            </div>
+                          )}
                         </div>
                       </div>
 
-                      <div className="flex sm:flex-col items-center sm:items-end justify-between w-full sm:w-auto pt-2 sm:pt-0 border-t sm:border-t-0 border-white/5">
+                      <div className="flex sm:flex-col items-center sm:items-end justify-between w-full md:w-auto pt-2 md:pt-0 border-t md:border-t-0 border-white/5">
                         <div className="text-left sm:text-right">
-                          <p className="text-xs font-bold text-white">{track.streams} streams</p>
-                          <p className="text-xs text-emerald-400 font-semibold">{track.earnings}</p>
+                          <p className="text-xs font-bold text-white">{track.streams || '0'} streams</p>
+                          <p className="text-xs text-emerald-400 font-semibold">{track.earnings || '₹0'}</p>
                         </div>
                         <div className="flex gap-1 mt-1.5">
                           {['🎵', '🍎', '▶️', '🎤'].map((icon, i) => (
@@ -399,7 +523,346 @@ export default function DashboardModal() {
             </div>
           )}
 
-          {/* TAB 2: ROYALTIES */}
+          {/* TAB 2: SUBMIT / UPLOAD NEW RELEASE */}
+          {activeTab === 'submit' && (
+            <div className="max-w-2xl mx-auto py-2">
+              <div className="text-center mb-5">
+                <div className="w-12 h-12 rounded-2xl bg-indigo-500/10 border border-indigo-500/20 flex items-center justify-center text-indigo-400 mx-auto mb-2">
+                  <Upload className="w-6 h-6" />
+                </div>
+                <h3 className="text-white font-bold text-base">Upload & Submit New Music Release</h3>
+                <p className="text-xs text-gray-400 mt-0.5">
+                  Deliver your song directly to Spotify, Apple Music, YouTube Music, JioSaavn & 20+ platforms.
+                </p>
+              </div>
+
+              {showSubmissionSuccess ? (
+                <div className="p-6 rounded-2xl bg-emerald-950/60 border border-emerald-800 text-center space-y-2">
+                  <CheckCircle2 className="w-10 h-10 text-emerald-400 mx-auto" />
+                  <h4 className="text-white font-bold text-base">Release & Media Uploaded Successfully!</h4>
+                  <p className="text-xs text-emerald-200">
+                    RK DIGITAL MEDIA QC team will review your audio and artwork. Status is set to "In Review".
+                  </p>
+                </div>
+              ) : (
+                <form onSubmit={handleTrackSubmit} className="space-y-4">
+                  {/* Track Title */}
+                  <div>
+                    <label className="block text-xs font-semibold text-gray-300 mb-1">
+                      Track Title / Song Name *
+                    </label>
+                    <input
+                      type="text"
+                      required
+                      placeholder="e.g. Mithila Ke Sugandh"
+                      value={newTrackTitle}
+                      onChange={(e) => setNewTrackTitle(e.target.value)}
+                      className="w-full px-3.5 py-2.5 bg-black/40 border border-white/15 rounded-xl text-sm text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                    />
+                  </div>
+
+                  {/* Main Artist & Genre */}
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                    <div>
+                      <label className="block text-xs font-semibold text-gray-300 mb-1">
+                        Main Artist(s) *
+                      </label>
+                      <input
+                        type="text"
+                        required
+                        placeholder="Singer / Performer name"
+                        value={newArtistName || user.name}
+                        onChange={(e) => setNewArtistName(e.target.value)}
+                        className="w-full px-3.5 py-2.5 bg-black/40 border border-white/15 rounded-xl text-sm text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-xs font-semibold text-gray-300 mb-1">Genre</label>
+                      <select
+                        value={newGenre}
+                        onChange={(e) => setNewGenre(e.target.value)}
+                        className="w-full px-3 py-2.5 bg-black/40 border border-white/15 rounded-xl text-sm text-white focus:outline-none focus:ring-2 focus:ring-indigo-500 cursor-pointer"
+                      >
+                        <option value="Regional / Folk" className="bg-navy-900 text-white">Regional / Folk</option>
+                        <option value="Bhojpuri Pop" className="bg-navy-900 text-white">Bhojpuri Pop</option>
+                        <option value="Maithili Music" className="bg-navy-900 text-white">Maithili Music</option>
+                        <option value="Devotional / Bhakti" className="bg-navy-900 text-white">Devotional / Bhakti</option>
+                        <option value="Bollywood / Hindi" className="bg-navy-900 text-white">Bollywood / Hindi</option>
+                        <option value="Hip Hop / Rap" className="bg-navy-900 text-white">Hip Hop / Rap</option>
+                      </select>
+                    </div>
+                  </div>
+
+                  {/* Language */}
+                  <div>
+                    <label className="block text-xs font-semibold text-gray-300 mb-1">Language</label>
+                    <select
+                      value={newLanguage}
+                      onChange={(e) => setNewLanguage(e.target.value)}
+                      className="w-full px-3 py-2.5 bg-black/40 border border-white/15 rounded-xl text-sm text-white focus:outline-none focus:ring-2 focus:ring-indigo-500 cursor-pointer"
+                    >
+                      <option value="Maithili / Bhojpuri" className="bg-navy-900 text-white">Maithili / Bhojpuri</option>
+                      <option value="Hindi" className="bg-navy-900 text-white">Hindi</option>
+                      <option value="Magahi" className="bg-navy-900 text-white">Magahi</option>
+                      <option value="Punjabi" className="bg-navy-900 text-white">Punjabi</option>
+                      <option value="Bengali" className="bg-navy-900 text-white">Bengali</option>
+                      <option value="English" className="bg-navy-900 text-white">English</option>
+                    </select>
+                  </div>
+
+                  {/* MEDIA UPLOAD SECTION: Real Artwork Cover & Audio Track */}
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-1">
+                    {/* 1. Cover Artwork File Upload */}
+                    <div className="p-4 rounded-2xl bg-white/[0.02] border border-dashed border-indigo-500/30 hover:border-indigo-500/60 transition-all text-center flex flex-col justify-between">
+                      <div>
+                        <input
+                          type="file"
+                          ref={artworkInputRef}
+                          onChange={handleArtworkChange}
+                          accept="image/jpeg,image/png,image/webp,image/jpg"
+                          className="hidden"
+                        />
+                        {artworkPreview ? (
+                          <div className="relative mx-auto mb-2 w-28 h-28 rounded-xl overflow-hidden border border-white/20 shadow-lg">
+                            <img src={artworkPreview} alt="Cover Preview" className="w-full h-full object-cover" />
+                            <button
+                              type="button"
+                              onClick={() => {
+                                setArtworkFile(null);
+                                setArtworkPreview(null);
+                              }}
+                              className="absolute top-1 right-1 p-1 rounded-full bg-black/70 text-white hover:bg-black"
+                            >
+                              <X className="w-3.5 h-3.5" />
+                            </button>
+                          </div>
+                        ) : (
+                          <div
+                            onClick={() => artworkInputRef.current?.click()}
+                            className="cursor-pointer py-4"
+                          >
+                            <ImageIcon className="w-9 h-9 text-indigo-400 mx-auto mb-2" />
+                            <p className="text-xs text-white font-semibold">Upload Cover Artwork</p>
+                            <p className="text-[11px] text-gray-400 mt-0.5">3000×3000px JPG / PNG</p>
+                          </div>
+                        )}
+                      </div>
+
+                      <button
+                        type="button"
+                        onClick={() => artworkInputRef.current?.click()}
+                        className="mt-2 w-full py-1.5 px-3 rounded-lg bg-white/5 hover:bg-white/10 text-white text-xs font-semibold border border-white/10"
+                      >
+                        {artworkFile ? `Change: ${artworkFile.name.slice(0, 18)}...` : 'Browse Image File'}
+                      </button>
+                    </div>
+
+                    {/* 2. Audio Track File Upload */}
+                    <div className="p-4 rounded-2xl bg-white/[0.02] border border-dashed border-blue-500/30 hover:border-blue-500/60 transition-all text-center flex flex-col justify-between">
+                      <div>
+                        <input
+                          type="file"
+                          ref={audioInputRef}
+                          onChange={handleAudioChange}
+                          accept="audio/wav,audio/mpeg,audio/mp3,audio/flac,audio/x-m4a"
+                          className="hidden"
+                        />
+                        {audioFile ? (
+                          <div className="py-2 space-y-2">
+                            <FileAudio className="w-8 h-8 text-emerald-400 mx-auto" />
+                            <p className="text-xs text-white font-semibold truncate max-w-[200px] mx-auto">
+                              {audioFile.name}
+                            </p>
+                            <p className="text-[11px] text-gray-400">
+                              {(audioFile.size / (1024 * 1024)).toFixed(2)} MB
+                            </p>
+                            {audioPreview && (
+                              <audio controls src={audioPreview} className="w-full h-8 mt-1" />
+                            )}
+                          </div>
+                        ) : (
+                          <div
+                            onClick={() => audioInputRef.current?.click()}
+                            className="cursor-pointer py-4"
+                          >
+                            <FileAudio className="w-9 h-9 text-blue-400 mx-auto mb-2" />
+                            <p className="text-xs text-white font-semibold">Upload Audio Track</p>
+                            <p className="text-[11px] text-gray-400 mt-0.5">WAV / MP3 / FLAC</p>
+                          </div>
+                        )}
+                      </div>
+
+                      <button
+                        type="button"
+                        onClick={() => audioInputRef.current?.click()}
+                        className="mt-2 w-full py-1.5 px-3 rounded-lg bg-white/5 hover:bg-white/10 text-white text-xs font-semibold border border-white/10"
+                      >
+                        {audioFile ? 'Change Audio File' : 'Browse Audio File'}
+                      </button>
+                    </div>
+                  </div>
+
+                  {/* Submit Button with Live Progress */}
+                  <button
+                    type="submit"
+                    disabled={isSubmitting}
+                    className="w-full py-3 rounded-xl bg-gradient-to-r from-blue-600 via-indigo-600 to-purple-600 hover:from-blue-500 hover:to-purple-500 text-white font-bold text-sm shadow-xl shadow-indigo-500/25 transition-all flex items-center justify-center gap-2 disabled:opacity-60 mt-2"
+                  >
+                    {isSubmitting ? (
+                      <>
+                        <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                        <span>{uploadStatusText || 'Uploading Track & Registering Release...'}</span>
+                      </>
+                    ) : (
+                      <>
+                        <span>Submit Track for Distribution Review</span>
+                        <ChevronRight className="w-4 h-4" />
+                      </>
+                    )}
+                  </button>
+
+                  <p className="text-[11px] text-gray-400 text-center">
+                    Files are encrypted and stored in RK Digital Media's dedicated cloud storage.
+                  </p>
+                </form>
+              )}
+            </div>
+          )}
+
+          {/* TAB 3: LABEL OWNER / ADMIN PORTAL (Only visible to Owner Raushan Pathak) */}
+          {activeTab === 'admin' && isOwner && (
+            <div className="space-y-4">
+              <div className="flex items-center justify-between">
+                <div>
+                  <h3 className="text-white font-bold text-base flex items-center gap-2">
+                    <span>👑 Label Master Review Portal</span>
+                    <span className="text-xs px-2 py-0.5 rounded-full bg-amber-500/20 text-amber-300 border border-amber-500/30">
+                      {userReleases.length} Total Submissions
+                    </span>
+                  </h3>
+                  <p className="text-xs text-gray-400">
+                    As Label Owner, listen to artist audio files, review 3000×3000 artwork, and approve distribution.
+                  </p>
+                </div>
+                <button
+                  onClick={fetchReleases}
+                  className="px-3 py-1.5 rounded-lg bg-white/5 hover:bg-white/10 text-white text-xs font-semibold border border-white/10 flex items-center gap-1.5"
+                >
+                  <RefreshCw className="w-3.5 h-3.5" />
+                  <span>Refresh</span>
+                </button>
+              </div>
+
+              <div className="space-y-3">
+                {userReleases.map((track) => (
+                  <div
+                    key={track.id || track.track_id}
+                    className="p-4 rounded-2xl bg-white/[0.03] border border-white/10 space-y-3"
+                  >
+                    <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
+                      <div className="flex items-start gap-3">
+                        {track.artwork_url ? (
+                          <a href={track.artwork_url} target="_blank" rel="noopener noreferrer">
+                            <img
+                              src={track.artwork_url}
+                              alt={track.title}
+                              className="w-16 h-16 rounded-xl object-cover border border-white/10 shadow-md hover:scale-105 transition-transform"
+                              title="Click to view full 3000x3000px artwork"
+                            />
+                          </a>
+                        ) : (
+                          <div className="w-16 h-16 rounded-xl bg-gradient-to-br from-indigo-600 to-purple-800 flex items-center justify-center text-white flex-shrink-0">
+                            <Music className="w-6 h-6" />
+                          </div>
+                        )}
+                        <div>
+                          <div className="flex items-center gap-2 flex-wrap">
+                            <h4 className="text-white font-bold text-base">{track.title}</h4>
+                            <span
+                              className={`px-2 py-0.5 rounded-full text-[10px] font-bold border ${track.statusColor || track.status_color || 'text-amber-400 bg-amber-500/10 border-amber-500/20'}`}
+                            >
+                              {track.status || 'In Review'}
+                            </span>
+                          </div>
+                          <p className="text-xs text-indigo-300 font-semibold mt-0.5">
+                            Artist: {track.artist}
+                          </p>
+                          <p className="text-[11px] text-gray-400">
+                            Email: {track.artist_email || 'rkdigitalmediawork@gmail.com'} • Phone: {track.artist_phone || '7631350084'}
+                          </p>
+                          <p className="text-[11px] text-gray-500 font-mono mt-0.5">
+                            ID: {track.track_id || track.id} • ISRC: {track.isrc || 'Pending'} • UPC: {track.upc || 'Pending'}
+                          </p>
+                        </div>
+                      </div>
+
+                      {/* Status Action Buttons for Owner */}
+                      <div className="flex items-center gap-2 flex-wrap sm:flex-nowrap">
+                        <button
+                          onClick={() => handleOwnerStatusUpdate(track.id, 'Live')}
+                          className="px-3 py-1.5 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-bold transition-all shadow flex items-center gap-1"
+                        >
+                          <Check className="w-3.5 h-3.5" />
+                          <span>Approve & Live</span>
+                        </button>
+                        <button
+                          onClick={() => handleOwnerStatusUpdate(track.id, 'In Review')}
+                          className="px-3 py-1.5 rounded-xl bg-amber-600 hover:bg-amber-500 text-white text-xs font-bold transition-all shadow"
+                        >
+                          Under QC
+                        </button>
+                        <button
+                          onClick={() => handleOwnerStatusUpdate(track.id, 'Action Required')}
+                          className="px-3 py-1.5 rounded-xl bg-rose-600 hover:bg-rose-500 text-white text-xs font-bold transition-all shadow"
+                        >
+                          Needs Revision
+                        </button>
+                      </div>
+                    </div>
+
+                    {/* Audio Player and Download Links */}
+                    {track.audio_url && (
+                      <div className="pt-2 border-t border-white/5 flex flex-col sm:flex-row items-center gap-3">
+                        <div className="flex-1 w-full">
+                          <p className="text-[11px] text-gray-400 mb-1 flex items-center gap-1">
+                            <Headphones className="w-3 h-3 text-indigo-400" />
+                            <span>Audio Playback:</span>
+                          </p>
+                          <audio controls src={track.audio_url} className="w-full h-8" />
+                        </div>
+                        <div className="flex items-center gap-2 flex-shrink-0 pt-2 sm:pt-4">
+                          <a
+                            href={track.audio_url}
+                            download={`${track.title}.mp3`}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="px-3 py-1.5 rounded-lg bg-white/10 hover:bg-white/20 text-white text-xs font-semibold flex items-center gap-1"
+                          >
+                            <Download className="w-3 h-3" />
+                            <span>Audio</span>
+                          </a>
+                          {track.artwork_url && (
+                            <a
+                              href={track.artwork_url}
+                              download={`${track.title}_cover.jpg`}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="px-3 py-1.5 rounded-lg bg-white/10 hover:bg-white/20 text-white text-xs font-semibold flex items-center gap-1"
+                            >
+                              <Download className="w-3 h-3" />
+                              <span>Artwork</span>
+                            </a>
+                          )}
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {/* TAB 4: ROYALTIES */}
           {activeTab === 'royalties' && (
             <div className="space-y-5">
               <div>
@@ -412,7 +875,7 @@ export default function DashboardModal() {
               <div className="grid sm:grid-cols-3 gap-4">
                 <div className="p-4 rounded-2xl bg-indigo-500/10 border border-indigo-500/20">
                   <p className="text-xs text-indigo-300 font-medium">Current Balance</p>
-                  <p className="text-2xl font-black text-white mt-1">₹48,650</p>
+                  <p className="text-2xl font-black text-white mt-1">{user.earnings || '₹48,650'}</p>
                   <p className="text-[11px] text-gray-400 mt-1">Ready for monthly payout</p>
                 </div>
                 <div className="p-4 rounded-2xl bg-purple-500/10 border border-purple-500/20">
@@ -454,7 +917,7 @@ export default function DashboardModal() {
             </div>
           )}
 
-          {/* TAB 3: PLATFORMS */}
+          {/* TAB 5: PLATFORMS */}
           {activeTab === 'platforms' && (
             <div className="space-y-4">
               <div>
@@ -493,104 +956,6 @@ export default function DashboardModal() {
                   </div>
                 ))}
               </div>
-            </div>
-          )}
-
-          {/* TAB 4: SUBMIT NEW RELEASE */}
-          {activeTab === 'submit' && (
-            <div className="max-w-2xl mx-auto py-2">
-              <div className="text-center mb-5">
-                <div className="w-12 h-12 rounded-2xl bg-indigo-500/10 border border-indigo-500/20 flex items-center justify-center text-indigo-400 mx-auto mb-2">
-                  <Upload className="w-6 h-6" />
-                </div>
-                <h3 className="text-white font-bold text-base">Submit New Music Release</h3>
-                <p className="text-xs text-gray-400 mt-0.5">
-                  Deliver your next track to Spotify, Apple Music, YouTube Music, JioSaavn & 20+ platforms.
-                </p>
-              </div>
-
-              {showSubmissionSuccess ? (
-                <div className="p-6 rounded-2xl bg-emerald-950/60 border border-emerald-800 text-center space-y-2">
-                  <CheckCircle2 className="w-10 h-10 text-emerald-400 mx-auto" />
-                  <h4 className="text-white font-bold text-base">Release Details Submitted!</h4>
-                  <p className="text-xs text-emerald-200">
-                    RK DIGITAL MEDIA QC team will review your audio and artwork. We will contact you at {user.email}.
-                  </p>
-                </div>
-              ) : (
-                <form onSubmit={handleTrackSubmit} className="space-y-4">
-                  <div>
-                    <label className="block text-xs font-semibold text-gray-300 mb-1">
-                      Track Title / Song Name
-                    </label>
-                    <input
-                      type="text"
-                      required
-                      placeholder="e.g. Mithila Ke Sugandh"
-                      value={newTrackTitle}
-                      onChange={(e) => setNewTrackTitle(e.target.value)}
-                      className="w-full px-3.5 py-2.5 bg-black/40 border border-white/15 rounded-xl text-sm text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-indigo-500"
-                    />
-                  </div>
-
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                    <div>
-                      <label className="block text-xs font-semibold text-gray-300 mb-1">
-                        Main Artist(s)
-                      </label>
-                      <input
-                        type="text"
-                        required
-                        placeholder="Singer / Performer name"
-                        value={newArtistName || user.name}
-                        onChange={(e) => setNewArtistName(e.target.value)}
-                        className="w-full px-3.5 py-2.5 bg-black/40 border border-white/15 rounded-xl text-sm text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-indigo-500"
-                      />
-                    </div>
-                    <div>
-                      <label className="block text-xs font-semibold text-gray-300 mb-1">Genre</label>
-                      <select
-                        value={newGenre}
-                        onChange={(e) => setNewGenre(e.target.value)}
-                        className="w-full px-3 py-2.5 bg-black/40 border border-white/15 rounded-xl text-sm text-white focus:outline-none focus:ring-2 focus:ring-indigo-500 cursor-pointer"
-                      >
-                        <option value="Regional / Folk" className="bg-navy-900 text-white">Regional / Folk</option>
-                        <option value="Bhojpuri Pop" className="bg-navy-900 text-white">Bhojpuri Pop</option>
-                        <option value="Maithili Music" className="bg-navy-900 text-white">Maithili Music</option>
-                        <option value="Devotional / Bhakti" className="bg-navy-900 text-white">Devotional / Bhakti</option>
-                        <option value="Bollywood / Hindi" className="bg-navy-900 text-white">Bollywood / Hindi</option>
-                        <option value="Hip Hop / Rap" className="bg-navy-900 text-white">Hip Hop / Rap</option>
-                      </select>
-                    </div>
-                  </div>
-
-                  <div className="p-4 rounded-xl bg-white/[0.02] border border-dashed border-white/20 text-center">
-                    <Music className="w-8 h-8 text-gray-400 mx-auto mb-2" />
-                    <p className="text-xs text-gray-300 font-semibold">
-                      Send your WAV audio file & 3000×3000 Artwork to:
-                    </p>
-                    <a
-                      href={`mailto:rkdigitalmediawork@gmail.com?subject=New Release: ${encodeURIComponent(
-                        newTrackTitle || 'My New Song'
-                      )}&body=Artist: ${encodeURIComponent(user.name)}%0D%0APhone: ${encodeURIComponent(
-                        user.phone || ''
-                      )}%0D%0AArtist ID: ${user.artistId}`}
-                      className="text-xs text-indigo-400 hover:text-indigo-300 font-mono mt-1 inline-block"
-                    >
-                      rkdigitalmediawork@gmail.com
-                    </a>
-                    <p className="text-[11px] text-gray-500 mt-1">or send via WhatsApp to 7631350084</p>
-                  </div>
-
-                  <button
-                    type="submit"
-                    className="w-full py-3 rounded-xl bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 text-white font-bold text-sm shadow-xl shadow-indigo-500/25 transition-all flex items-center justify-center gap-2"
-                  >
-                    <span>Submit Track for Distribution Review</span>
-                    <ChevronRight className="w-4 h-4" />
-                  </button>
-                </form>
-              )}
             </div>
           )}
         </div>

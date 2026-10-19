@@ -102,6 +102,7 @@ function ContactForm() {
           onChange={(e) => setName(e.target.value)}
           type="text"
           required
+          autoComplete="name"
           placeholder="Artist / Label Name"
           className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl text-sm text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all"
         />
@@ -114,6 +115,7 @@ function ContactForm() {
           onChange={(e) => setEmail(e.target.value)}
           type="email"
           required
+          autoComplete="email"
           placeholder="your@email.com"
           className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl text-sm text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all"
         />
@@ -125,6 +127,7 @@ function ContactForm() {
           value={phone}
           onChange={(e) => setPhone(e.target.value)}
           type="tel"
+          autoComplete="tel"
           placeholder="+91 7631350084"
           className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl text-sm text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all"
         />

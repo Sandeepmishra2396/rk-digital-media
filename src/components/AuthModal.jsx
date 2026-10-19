@@ -450,6 +450,7 @@ export default function AuthModal() {
                   <input
                     type="email"
                     required
+                    autoComplete="email"
                     placeholder="name@example.com"
                     value={loginEmail}
                     onChange={(e) => setLoginEmail(e.target.value)}
@@ -474,6 +475,7 @@ export default function AuthModal() {
                   <input
                     type={showPassword ? 'text' : 'password'}
                     required
+                    autoComplete="current-password"
                     placeholder="Enter your password"
                     value={loginPassword}
                     onChange={(e) => setLoginPassword(e.target.value)}
@@ -553,6 +555,7 @@ export default function AuthModal() {
                   <input
                     type="text"
                     required
+                    autoComplete="name"
                     placeholder="e.g. Raushan Pathak / Mithila Music"
                     value={signupName}
                     onChange={(e) => setSignupName(e.target.value)}
@@ -570,6 +573,7 @@ export default function AuthModal() {
                   <input
                     type="email"
                     required
+                    autoComplete="email"
                     placeholder="yourname@gmail.com"
                     value={signupEmail}
                     onChange={(e) => setSignupEmail(e.target.value)}
@@ -586,6 +590,7 @@ export default function AuthModal() {
                   <Phone className="w-4 h-4 text-gray-400 absolute left-3.5 top-1/2 -translate-y-1/2" />
                   <input
                     type="tel"
+                    autoComplete="tel"
                     placeholder="e.g. 7631350084"
                     value={signupPhone}
                     onChange={(e) => setSignupPhone(e.target.value)}
@@ -626,6 +631,7 @@ export default function AuthModal() {
                     <input
                       type={showPassword ? 'text' : 'password'}
                       required
+                      autoComplete="new-password"
                       placeholder="At least 6 chars"
                       value={signupPassword}
                       onChange={(e) => setSignupPassword(e.target.value)}
@@ -640,6 +646,7 @@ export default function AuthModal() {
                     <input
                       type={showPassword ? 'text' : 'password'}
                       required
+                      autoComplete="new-password"
                       placeholder="Re-enter password"
                       value={signupConfirmPassword}
                       onChange={(e) => setSignupConfirmPassword(e.target.value)}
@@ -715,6 +722,7 @@ export default function AuthModal() {
                       <input
                         type="email"
                         required
+                        autoComplete="email"
                         placeholder="e.g. artist@rkdigitalmedia.in"
                         value={forgotEmail}
                         onChange={(e) => setForgotEmail(e.target.value)}
@@ -767,6 +775,7 @@ export default function AuthModal() {
                     <input
                       type="text"
                       required
+                      autoComplete="one-time-code"
                       maxLength={6}
                       value={enteredOtp}
                       onChange={(e) => setEnteredOtp(e.target.value)}
@@ -781,6 +790,7 @@ export default function AuthModal() {
                     <input
                       type="password"
                       required
+                      autoComplete="new-password"
                       placeholder="Minimum 6 characters"
                       value={newPassword}
                       onChange={(e) => setNewPassword(e.target.value)}
@@ -795,6 +805,7 @@ export default function AuthModal() {
                     <input
                       type="password"
                       required
+                      autoComplete="new-password"
                       placeholder="Re-enter new password"
                       value={confirmNewPassword}
                       onChange={(e) => setConfirmNewPassword(e.target.value)}
