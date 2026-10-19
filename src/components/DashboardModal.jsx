@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import {
   X,
@@ -23,6 +23,7 @@ import {
   Award,
 } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
+import { api } from '../services/api';
 
 const DEMO_RELEASES = [
   {
@@ -87,6 +88,9 @@ export default function DashboardModal() {
   const { user, isDashboardOpen, closeDashboard, logout } = useAuth();
   const [activeTab, setActiveTab] = useState('releases'); // 'releases' | 'royalties' | 'platforms' | 'submit'
   const [showSubmissionSuccess, setShowSubmissionSuccess] = useState(false);
+  const [userReleases, setUserReleases] = useState([]);
+  const [loadingReleases, setLoadingReleases] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   // New release submission form states
   const [newTrackTitle, setNewTrackTitle] = useState('');
@@ -94,17 +98,61 @@ export default function DashboardModal() {
   const [newGenre, setNewGenre] = useState('Regional / Folk');
   const [newLanguage, setNewLanguage] = useState('Maithili / Bhojpuri');
 
+  // Load real user releases from Supabase & Backend API
+  useEffect(() => {
+    if (isDashboardOpen && user) {
+      setLoadingReleases(true);
+      api.releases
+        .getUserReleases()
+        .then((data) => {
+          if (data && data.length > 0) {
+            setUserReleases(data);
+          } else if (
+            user.email === 'artist@rkdigitalmedia.in' ||
+            user.email === 'rkdigitalmediawork@gmail.com'
+          ) {
+            setUserReleases(DEMO_RELEASES);
+          } else {
+            setUserReleases([]);
+          }
+        })
+        .catch(() => {
+          setUserReleases(DEMO_RELEASES);
+        })
+        .finally(() => setLoadingReleases(false));
+    }
+  }, [isDashboardOpen, user]);
+
   if (!isDashboardOpen || !user) return null;
 
-  const handleTrackSubmit = (e) => {
+  const handleTrackSubmit = async (e) => {
     e.preventDefault();
-    setShowSubmissionSuccess(true);
-    setTimeout(() => {
-      setShowSubmissionSuccess(false);
-      setActiveTab('releases');
-      setNewTrackTitle('');
-      setNewArtistName('');
-    }, 2000);
+    if (!newTrackTitle.trim()) return;
+
+    setIsSubmitting(true);
+    try {
+      const created = await api.releases.createRelease({
+        title: newTrackTitle.trim(),
+        artist: newArtistName.trim() || user.name,
+        genre: newGenre,
+        language: newLanguage,
+      });
+
+      if (created) {
+        setUserReleases((prev) => [created, ...prev]);
+      }
+      setShowSubmissionSuccess(true);
+      setTimeout(() => {
+        setShowSubmissionSuccess(false);
+        setActiveTab('releases');
+        setNewTrackTitle('');
+        setNewArtistName('');
+      }, 1500);
+    } catch (err) {
+      console.error('Error submitting track to backend:', err);
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   return (
@@ -278,53 +326,75 @@ export default function DashboardModal() {
               </div>
 
               <div className="space-y-3">
-                {DEMO_RELEASES.map((track) => (
-                  <div
-                    key={track.id}
-                    className="p-4 rounded-2xl bg-white/[0.03] border border-white/10 hover:border-indigo-500/40 transition-all flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4"
-                  >
-                    <div className="flex items-start gap-3.5">
-                      <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-indigo-600 to-purple-800 flex items-center justify-center text-white flex-shrink-0 shadow-md">
-                        <Music className="w-6 h-6 text-white" />
-                      </div>
-                      <div>
-                        <div className="flex items-center gap-2 flex-wrap">
-                          <h4 className="text-white font-bold text-sm sm:text-base">{track.title}</h4>
-                          <span
-                            className={`px-2 py-0.5 rounded-full text-[10px] font-bold border ${track.statusColor}`}
-                          >
-                            {track.status}
-                          </span>
-                        </div>
-                        <p className="text-xs text-indigo-300 font-medium">{track.artist}</p>
-                        <div className="flex items-center gap-3 text-[11px] text-gray-500 mt-1 flex-wrap">
-                          <span>Genre: {track.genre}</span>
-                          <span>•</span>
-                          <span className="font-mono">ISRC: {track.isrc}</span>
-                          <span>•</span>
-                          <span>Released: {track.releaseDate}</span>
-                        </div>
-                      </div>
-                    </div>
-
-                    <div className="flex sm:flex-col items-center sm:items-end justify-between w-full sm:w-auto pt-2 sm:pt-0 border-t sm:border-t-0 border-white/5">
-                      <div className="text-left sm:text-right">
-                        <p className="text-xs font-bold text-white">{track.streams} streams</p>
-                        <p className="text-xs text-emerald-400 font-semibold">{track.earnings}</p>
-                      </div>
-                      <div className="flex gap-1 mt-1.5">
-                        {['🎵', '🍎', '▶️', '🎤'].map((icon, i) => (
-                          <span
-                            key={i}
-                            className="w-5 h-5 rounded bg-white/10 flex items-center justify-center text-[10px]"
-                          >
-                            {icon}
-                          </span>
-                        ))}
-                      </div>
-                    </div>
+                {loadingReleases ? (
+                  <div className="p-8 text-center text-gray-400 text-sm">
+                    <div className="w-6 h-6 border-2 border-indigo-500 border-t-transparent rounded-full animate-spin mx-auto mb-2" />
+                    Loading your catalog...
                   </div>
-                ))}
+                ) : userReleases.length === 0 ? (
+                  <div className="p-8 rounded-2xl bg-white/[0.02] border border-white/5 text-center">
+                    <Music className="w-10 h-10 text-indigo-400/50 mx-auto mb-2" />
+                    <p className="text-white font-semibold text-sm">No releases submitted yet</p>
+                    <p className="text-gray-400 text-xs mt-1 max-w-sm mx-auto">
+                      Submit your first song to start distributing across Spotify, Apple Music, JioSaavn and 20+ platforms.
+                    </p>
+                    <button
+                      onClick={() => setActiveTab('submit')}
+                      className="mt-4 px-4 py-2 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-bold inline-flex items-center gap-1.5"
+                    >
+                      <Upload className="w-3.5 h-3.5" />
+                      Submit First Song
+                    </button>
+                  </div>
+                ) : (
+                  userReleases.map((track) => (
+                    <div
+                      key={track.id || track.track_id}
+                      className="p-4 rounded-2xl bg-white/[0.03] border border-white/10 hover:border-indigo-500/40 transition-all flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4"
+                    >
+                      <div className="flex items-start gap-3.5">
+                        <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-indigo-600 to-purple-800 flex items-center justify-center text-white flex-shrink-0 shadow-md">
+                          <Music className="w-6 h-6 text-white" />
+                        </div>
+                        <div>
+                          <div className="flex items-center gap-2 flex-wrap">
+                            <h4 className="text-white font-bold text-sm sm:text-base">{track.title}</h4>
+                            <span
+                              className={`px-2 py-0.5 rounded-full text-[10px] font-bold border ${track.statusColor || track.status_color || 'text-amber-400 bg-amber-500/10 border-amber-500/20'}`}
+                            >
+                              {track.status}
+                            </span>
+                          </div>
+                          <p className="text-xs text-indigo-300 font-medium">{track.artist}</p>
+                          <div className="flex items-center gap-3 text-[11px] text-gray-500 mt-1 flex-wrap">
+                            <span>Genre: {track.genre}</span>
+                            <span>•</span>
+                            <span className="font-mono">ISRC: {track.isrc || 'Pending'}</span>
+                            <span>•</span>
+                            <span>Released: {track.releaseDate || track.release_date || 'In Review'}</span>
+                          </div>
+                        </div>
+                      </div>
+
+                      <div className="flex sm:flex-col items-center sm:items-end justify-between w-full sm:w-auto pt-2 sm:pt-0 border-t sm:border-t-0 border-white/5">
+                        <div className="text-left sm:text-right">
+                          <p className="text-xs font-bold text-white">{track.streams} streams</p>
+                          <p className="text-xs text-emerald-400 font-semibold">{track.earnings}</p>
+                        </div>
+                        <div className="flex gap-1 mt-1.5">
+                          {['🎵', '🍎', '▶️', '🎤'].map((icon, i) => (
+                            <span
+                              key={i}
+                              className="w-5 h-5 rounded bg-white/10 flex items-center justify-center text-[10px]"
+                            >
+                              {icon}
+                            </span>
+                          ))}
+                        </div>
+                      </div>
+                    </div>
+                  ))
+                )}
               </div>
             </div>
           )}

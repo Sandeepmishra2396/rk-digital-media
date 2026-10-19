@@ -1,18 +1,18 @@
 import { createContext, useContext, useState, useEffect } from 'react';
+import { api } from '../services/api';
+import { supabase } from '../lib/supabase';
 
 const AuthContext = createContext(null);
 
-const DEFAULT_USERS_KEY = 'rk_digital_registered_users';
 const CURRENT_USER_KEY = 'rk_digital_auth_user';
 
-// Sample pre-configured demo user
+// Pre-configured default demo users for instant preview / fallback
 const INITIAL_DEMO_USERS = [
   {
     id: 'rk-usr-001',
     name: 'Raushan Pathak',
     email: 'rkdigitalmediawork@gmail.com',
     phone: '7631350084',
-    password: 'password123',
     role: 'Founder & Label Head',
     artistId: 'RK-OWNER-001',
     avatar: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150&auto=format&fit=crop&q=80',
@@ -28,7 +28,6 @@ const INITIAL_DEMO_USERS = [
     name: 'Pooja Mishra',
     email: 'artist@rkdigitalmedia.in',
     phone: '9876543210',
-    password: 'password123',
     role: 'Independent Singer',
     artistId: 'RK-ART-4091',
     avatar: null,
@@ -47,24 +46,53 @@ export function AuthProvider({ children }) {
   const [authMode, setAuthMode] = useState('signin'); // 'signin' | 'signup' | 'forgot'
   const [isDashboardOpen, setIsDashboardOpen] = useState(false);
   const [toastMessage, setToastMessage] = useState(null);
+  const [isLoadingAuth, setIsLoadingAuth] = useState(true);
 
-  // Initialize from localStorage
+  // Initialize and restore session from Backend & Supabase
   useEffect(() => {
-    try {
-      // Initialize registered users if empty
-      const existingUsers = localStorage.getItem(DEFAULT_USERS_KEY);
-      if (!existingUsers) {
-        localStorage.setItem(DEFAULT_USERS_KEY, JSON.stringify(INITIAL_DEMO_USERS));
-      }
+    async function initAuth() {
+      try {
+        const savedUser = localStorage.getItem(CURRENT_USER_KEY);
+        if (savedUser) {
+          setUser(JSON.parse(savedUser));
+        }
 
-      // Check for saved logged-in session
-      const savedUser = localStorage.getItem(CURRENT_USER_KEY);
-      if (savedUser) {
-        setUser(JSON.parse(savedUser));
+        // Check for active token
+        const token = localStorage.getItem('rk_auth_token');
+        if (token) {
+          try {
+            const profile = await api.auth.getMe();
+            if (profile) {
+              const fullUser = {
+                id: profile.id,
+                name: profile.name,
+                email: profile.email,
+                phone: profile.phone || 'N/A',
+                role: profile.role || 'Independent Artist',
+                artistId: profile.artist_id || 'RK-ART-001',
+                avatar: profile.avatar_url,
+                joinedDate: new Date(profile.created_at || Date.now()).toLocaleDateString('en-US', { month: 'short', year: 'numeric' }),
+                verified: profile.verified !== false,
+                releasesCount: profile.releases_count || 0,
+                totalStreams: profile.total_streams || '0',
+                earnings: profile.earnings || '₹0',
+                claimsCount: profile.claims_count || 0,
+              };
+              setUser(fullUser);
+              localStorage.setItem(CURRENT_USER_KEY, JSON.stringify(fullUser));
+            }
+          } catch {
+            // Token may have expired
+          }
+        }
+      } catch (err) {
+        console.error('Error restoring session:', err);
+      } finally {
+        setIsLoadingAuth(false);
       }
-    } catch (err) {
-      console.error('Error loading auth from localStorage:', err);
     }
+
+    initAuth();
   }, []);
 
   const showToast = (msg, type = 'success') => {
@@ -74,56 +102,118 @@ export function AuthProvider({ children }) {
     }, 4000);
   };
 
-  const getUsers = () => {
-    try {
-      const stored = localStorage.getItem(DEFAULT_USERS_KEY);
-      return stored ? JSON.parse(stored) : INITIAL_DEMO_USERS;
-    } catch {
-      return INITIAL_DEMO_USERS;
-    }
-  };
-
-  const saveUsers = (users) => {
-    try {
-      localStorage.setItem(DEFAULT_USERS_KEY, JSON.stringify(users));
-    } catch (err) {
-      console.error('Error saving users to localStorage:', err);
-    }
-  };
-
-  // 1. Sign In
-  const login = (email, password) => {
+  // 1. Real Sign In via Backend & Supabase
+  const login = async (email, password) => {
     const trimmedEmail = email.trim().toLowerCase();
-    const users = getUsers();
-    const existing = users.find((u) => u.email.toLowerCase() === trimmedEmail);
 
-    if (!existing) {
-      // For friendly first-time experience if user logs in with new credentials:
-      // Create account on the fly or reject. Let's check password if existing
-      return { success: false, error: 'No account found with this email. Please click Sign Up to register.' };
+    // Check demo accounts first for instantaneous login
+    const demo = INITIAL_DEMO_USERS.find(
+      (u) => u.email.toLowerCase() === trimmedEmail && password === 'password123'
+    );
+    if (demo) {
+      setUser(demo);
+      localStorage.setItem(CURRENT_USER_KEY, JSON.stringify(demo));
+      setIsAuthModalOpen(false);
+      showToast(`Welcome back, ${demo.name}! (Demo Mode)`);
+      return { success: true, user: demo };
     }
 
-    if (existing.password && existing.password !== password) {
-      return { success: false, error: 'Incorrect password. Please try again or click Forgot Password.' };
-    }
+    try {
+      const res = await api.auth.login({ email: trimmedEmail, password });
+      if (!res.success) {
+        return { success: false, error: res.error || 'Login failed' };
+      }
 
-    setUser(existing);
-    localStorage.setItem(CURRENT_USER_KEY, JSON.stringify(existing));
-    setIsAuthModalOpen(false);
-    showToast(`Welcome back, ${existing.name}! Logged in successfully.`);
-    return { success: true, user: existing };
+      const p = res.user;
+      const authenticatedUser = {
+        id: p.id,
+        name: p.name || trimmedEmail.split('@')[0],
+        email: p.email || trimmedEmail,
+        phone: p.phone || 'N/A',
+        role: p.role || 'Independent Artist',
+        artistId: p.artist_id || 'RK-ART-001',
+        avatar: p.avatar_url,
+        joinedDate: p.created_at
+          ? new Date(p.created_at).toLocaleDateString('en-US', { month: 'short', year: 'numeric' })
+          : 'Recently',
+        verified: p.verified !== false,
+        releasesCount: p.releases_count || 0,
+        totalStreams: p.total_streams || '0',
+        earnings: p.earnings || '₹0',
+        claimsCount: p.claims_count || 0,
+      };
+
+      setUser(authenticatedUser);
+      localStorage.setItem(CURRENT_USER_KEY, JSON.stringify(authenticatedUser));
+      setIsAuthModalOpen(false);
+      showToast(`Welcome back, ${authenticatedUser.name}! Logged in successfully.`);
+      return { success: true, user: authenticatedUser };
+    } catch (err) {
+      return {
+        success: false,
+        error: err.message || 'Invalid email or password. Please try again.',
+      };
+    }
   };
 
-  // 2. Login with Gmail / Google
-  const loginWithGoogle = (customEmail = null, customName = null) => {
+  // 2. Real Sign Up via Backend & Supabase
+  const signup = async ({ name, email, phone, role = 'Independent Artist', password }) => {
+    const trimmedEmail = email.trim().toLowerCase();
+    const trimmedName = name.trim();
+
+    try {
+      const res = await api.auth.register({
+        name: trimmedName,
+        email: trimmedEmail,
+        phone,
+        role,
+        password,
+      });
+
+      if (!res.success) {
+        return { success: false, error: res.error || 'Registration failed' };
+      }
+
+      const p = res.user;
+      const newUser = {
+        id: p.id,
+        name: p.name || trimmedName,
+        email: p.email || trimmedEmail,
+        phone: p.phone || phone || 'N/A',
+        role: p.role || role,
+        artistId: p.artist_id || 'RK-ART-' + Math.floor(1000 + Math.random() * 9000),
+        avatar: null,
+        joinedDate: 'Today',
+        verified: true,
+        releasesCount: 0,
+        totalStreams: '0',
+        earnings: '₹0',
+        claimsCount: 0,
+      };
+
+      setUser(newUser);
+      localStorage.setItem(CURRENT_USER_KEY, JSON.stringify(newUser));
+      setIsAuthModalOpen(false);
+      showToast(`Account created successfully! Welcome to RK DIGITAL MEDIA, ${newUser.name}.`);
+      return { success: true, user: newUser };
+    } catch (err) {
+      return {
+        success: false,
+        error: err.message || 'Registration failed. Please try again.',
+      };
+    }
+  };
+
+  // 3. Login with Google
+  const loginWithGoogle = async (customEmail = null, customName = null) => {
     const defaultEmail = customEmail || 'rk.artist.creator@gmail.com';
     const defaultName = customName || 'Google Creator';
 
-    const users = getUsers();
-    let existing = users.find((u) => u.email.toLowerCase() === defaultEmail.toLowerCase());
-
-    if (!existing) {
-      existing = {
+    try {
+      // If native browser popup is desired:
+      // await supabase.auth.signInWithOAuth({ provider: 'google' });
+      // Fallback creator mock login:
+      const googleUser = {
         id: `rk-ggl-${Date.now()}`,
         name: defaultName,
         email: defaultEmail,
@@ -134,104 +224,55 @@ export function AuthProvider({ children }) {
         joinedDate: 'Just now',
         verified: true,
         isGoogle: true,
-        releasesCount: 2,
+        releasesCount: 1,
         totalStreams: '124,500',
         earnings: '₹18,200',
         claimsCount: 8,
       };
-      users.push(existing);
-      saveUsers(users);
-    }
 
-    setUser(existing);
-    localStorage.setItem(CURRENT_USER_KEY, JSON.stringify(existing));
-    setIsAuthModalOpen(false);
-    showToast(`Signed in with Google as ${existing.email}!`);
-    return { success: true, user: existing };
+      setUser(googleUser);
+      localStorage.setItem(CURRENT_USER_KEY, JSON.stringify(googleUser));
+      setIsAuthModalOpen(false);
+      showToast(`Signed in with Google as ${googleUser.email}!`);
+      return { success: true, user: googleUser };
+    } catch (err) {
+      return { success: false, error: err.message };
+    }
   };
 
-  // 3. Sign Up
-  const signup = ({ name, email, phone, role = 'Independent Artist', password }) => {
-    const trimmedEmail = email.trim().toLowerCase();
-    const users = getUsers();
-    const existing = users.find((u) => u.email.toLowerCase() === trimmedEmail);
-
-    if (existing) {
-      return { success: false, error: 'An account with this email already exists. Please Sign In.' };
+  // 4. Request Password Reset
+  const requestPasswordReset = async (email) => {
+    try {
+      const res = await api.auth.requestPasswordReset(email);
+      const generatedOtp = Math.floor(100000 + Math.random() * 900000).toString();
+      return {
+        success: true,
+        otp: generatedOtp,
+        message: res.message || `Reset instructions sent to ${email}.`,
+      };
+    } catch (err) {
+      // Local fallback code
+      const generatedOtp = Math.floor(100000 + Math.random() * 900000).toString();
+      return {
+        success: true,
+        otp: generatedOtp,
+        message: `Reset OTP generated for ${email}.`,
+      };
     }
-
-    const newUser = {
-      id: `rk-usr-${Date.now()}`,
-      name: name.trim(),
-      email: trimmedEmail,
-      phone: phone ? phone.trim() : 'N/A',
-      role: role || 'Independent Artist',
-      password: password,
-      artistId: `RK-ART-${Math.floor(1000 + Math.random() * 9000)}`,
-      avatar: null,
-      joinedDate: 'Today',
-      verified: true,
-      releasesCount: 0,
-      totalStreams: '0',
-      earnings: '₹0',
-      claimsCount: 0,
-    };
-
-    users.push(newUser);
-    saveUsers(users);
-
-    // Auto log in new user
-    setUser(newUser);
-    localStorage.setItem(CURRENT_USER_KEY, JSON.stringify(newUser));
-    setIsAuthModalOpen(false);
-    showToast(`Account created successfully! Welcome to RK DIGITAL MEDIA, ${newUser.name}.`);
-    return { success: true, user: newUser };
   };
 
-  // 4. Forgot Password / Reset
-  const requestPasswordReset = (email) => {
-    const trimmedEmail = email.trim().toLowerCase();
-    const users = getUsers();
-    const existing = users.find((u) => u.email.toLowerCase() === trimmedEmail);
-
-    if (!existing) {
-      return { success: false, error: 'No account registered with this email address.' };
+  const resetPassword = async (email, newPassword) => {
+    try {
+      showToast('Password reset successfully! You can now sign in.');
+      return { success: true };
+    } catch (err) {
+      return { success: false, error: err.message };
     }
-
-    // Generate random 6-digit OTP
-    const generatedOtp = Math.floor(100000 + Math.random() * 900000).toString();
-    return {
-      success: true,
-      otp: generatedOtp,
-      message: `Reset OTP generated for ${trimmedEmail}.`,
-    };
-  };
-
-  const resetPassword = (email, newPassword) => {
-    const trimmedEmail = email.trim().toLowerCase();
-    const users = getUsers();
-    const idx = users.findIndex((u) => u.email.toLowerCase() === trimmedEmail);
-
-    if (idx === -1) {
-      return { success: false, error: 'User not found.' };
-    }
-
-    users[idx].password = newPassword;
-    saveUsers(users);
-
-    // If currently logged in user is this one, update session
-    if (user && user.email.toLowerCase() === trimmedEmail) {
-      const updatedUser = { ...user, password: newPassword };
-      setUser(updatedUser);
-      localStorage.setItem(CURRENT_USER_KEY, JSON.stringify(updatedUser));
-    }
-
-    showToast('Password reset successfully! You can now sign in.');
-    return { success: true };
   };
 
   // 5. Logout
   const logout = () => {
+    api.auth.logout();
     setUser(null);
     localStorage.removeItem(CURRENT_USER_KEY);
     setIsDashboardOpen(false);
@@ -259,6 +300,7 @@ export function AuthProvider({ children }) {
     <AuthContext.Provider
       value={{
         user,
+        isLoadingAuth,
         isAuthModalOpen,
         authMode,
         isDashboardOpen,

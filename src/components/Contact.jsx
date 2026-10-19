@@ -1,5 +1,7 @@
+import { useState } from 'react';
 import { motion } from 'framer-motion';
-import { Mail, Phone, User, Building2, ArrowRight, MapPin, MessageCircle } from 'lucide-react';
+import { Mail, Phone, User, Building2, ArrowRight, MapPin, MessageCircle, CheckCircle2 } from 'lucide-react';
+import { api } from '../services/api';
 
 const contactDetails = [
   {
@@ -36,6 +38,125 @@ const colorMap = {
   blue: 'bg-blue-50 text-blue-600',
   green: 'bg-emerald-50 text-emerald-600',
 };
+
+function ContactForm() {
+  const [name, setName] = useState('');
+  const [email, setEmail] = useState('');
+  const [phone, setPhone] = useState('');
+  const [message, setMessage] = useState('');
+  const [loading, setLoading] = useState(false);
+  const [submitted, setSubmitted] = useState(false);
+  const [error, setError] = useState('');
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    setError('');
+    setLoading(true);
+
+    try {
+      await api.contact.submitInquiry({ name, email, phone, message });
+      setSubmitted(true);
+      setName('');
+      setEmail('');
+      setPhone('');
+      setMessage('');
+    } catch (err) {
+      setError(err.message || 'Failed to send message. Please try WhatsApp or email directly.');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  if (submitted) {
+    return (
+      <div className="p-6 rounded-2xl bg-emerald-50 border border-emerald-200 text-center space-y-3 my-auto">
+        <div className="w-12 h-12 rounded-full bg-emerald-100 flex items-center justify-center mx-auto text-emerald-600">
+          <CheckCircle2 className="w-6 h-6" />
+        </div>
+        <h4 className="text-emerald-900 font-bold text-lg">Inquiry Received!</h4>
+        <p className="text-emerald-700 text-sm">
+          Thank you for reaching out to RK Digital Media. Our artist support team has received your details and will get back to you shortly.
+        </p>
+        <button
+          onClick={() => setSubmitted(false)}
+          className="mt-2 text-xs font-semibold text-emerald-800 underline hover:text-emerald-900"
+        >
+          Send another message
+        </button>
+      </div>
+    );
+  }
+
+  return (
+    <form onSubmit={handleSubmit} className="space-y-4">
+      {error && (
+        <div className="p-3 rounded-xl bg-red-50 text-red-700 text-xs font-medium border border-red-200">
+          {error}
+        </div>
+      )}
+
+      <div>
+        <label className="block text-sm font-semibold text-gray-700 mb-1.5">Your Name</label>
+        <input
+          value={name}
+          onChange={(e) => setName(e.target.value)}
+          type="text"
+          required
+          placeholder="Artist / Label Name"
+          className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl text-sm text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all"
+        />
+      </div>
+
+      <div>
+        <label className="block text-sm font-semibold text-gray-700 mb-1.5">Your Email</label>
+        <input
+          value={email}
+          onChange={(e) => setEmail(e.target.value)}
+          type="email"
+          required
+          placeholder="your@email.com"
+          className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl text-sm text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all"
+        />
+      </div>
+
+      <div>
+        <label className="block text-sm font-semibold text-gray-700 mb-1.5">Phone / WhatsApp (Optional)</label>
+        <input
+          value={phone}
+          onChange={(e) => setPhone(e.target.value)}
+          type="tel"
+          placeholder="+91 7631350084"
+          className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl text-sm text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all"
+        />
+      </div>
+
+      <div>
+        <label className="block text-sm font-semibold text-gray-700 mb-1.5">Your Message</label>
+        <textarea
+          value={message}
+          onChange={(e) => setMessage(e.target.value)}
+          required
+          rows={3}
+          placeholder="Tell us about your music, your release plans, or any questions you have..."
+          className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl text-sm text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all resize-none"
+        />
+      </div>
+
+      <button
+        type="submit"
+        disabled={loading}
+        className="btn-primary w-full justify-center disabled:opacity-60"
+      >
+        {loading ? 'Sending Message...' : 'Send Message'}
+        <ArrowRight className="w-4 h-4" />
+      </button>
+
+      <p className="text-xs text-gray-400 text-center">
+        Your information is securely encrypted and stored directly in our database.
+      </p>
+    </form>
+  );
+}
 
 export default function Contact() {
   return (
@@ -144,63 +265,7 @@ export default function Contact() {
                 Fill in your details and we'll get back to you as soon as possible.
               </p>
 
-              <form
-                onSubmit={(e) => {
-                  e.preventDefault();
-                  const data = new FormData(e.target);
-                  const name = data.get('name');
-                  const message = data.get('message');
-                  const subject = encodeURIComponent(`Music Distribution Inquiry from ${name}`);
-                  const body = encodeURIComponent(`Name: ${name}\n\nMessage:\n${message}`);
-                  window.location.href = `mailto:rkdigitalmediawork@gmail.com?subject=${subject}&body=${body}`;
-                }}
-                className="space-y-4"
-              >
-                <div>
-                  <label className="block text-sm font-semibold text-gray-700 mb-1.5">Your Name</label>
-                  <input
-                    name="name"
-                    type="text"
-                    required
-                    placeholder="Artist / Label Name"
-                    className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl text-sm text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all"
-                  />
-                </div>
-
-                <div>
-                  <label className="block text-sm font-semibold text-gray-700 mb-1.5">Your Email</label>
-                  <input
-                    name="email"
-                    type="email"
-                    required
-                    placeholder="your@email.com"
-                    className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl text-sm text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all"
-                  />
-                </div>
-
-                <div>
-                  <label className="block text-sm font-semibold text-gray-700 mb-1.5">Your Message</label>
-                  <textarea
-                    name="message"
-                    required
-                    rows={4}
-                    placeholder="Tell us about your music, your release plans, or any questions you have..."
-                    className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl text-sm text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all resize-none"
-                  />
-                </div>
-
-                <button
-                  type="submit"
-                  className="btn-primary w-full justify-center"
-                >
-                  Send Message
-                  <ArrowRight className="w-4 h-4" />
-                </button>
-
-                <p className="text-xs text-gray-400 text-center">
-                  This will open your default email client to send the message.
-                </p>
-              </form>
+              <ContactForm />
             </div>
           </motion.div>
         </div>

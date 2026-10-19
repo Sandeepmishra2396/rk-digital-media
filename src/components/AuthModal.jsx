@@ -80,7 +80,7 @@ export default function AuthModal() {
   };
 
   // 1. Submit Sign In
-  const handleLoginSubmit = (e) => {
+  const handleLoginSubmit = async (e) => {
     e.preventDefault();
     setErrorMessage('');
     setSuccessMessage('');
@@ -91,28 +91,32 @@ export default function AuthModal() {
     }
 
     setLoading(true);
-    setTimeout(() => {
-      const res = login(loginEmail, loginPassword);
-      setLoading(false);
+    try {
+      const res = await login(loginEmail, loginPassword);
       if (!res.success) {
-        setErrorMessage(res.error);
+        setErrorMessage(res.error || 'Failed to sign in.');
       }
-    }, 600);
+    } catch (err) {
+      setErrorMessage(err.message || 'Error logging in.');
+    } finally {
+      setLoading(false);
+    }
   };
 
   // Demo 1-Click Login
-  const handleQuickDemoLogin = () => {
+  const handleQuickDemoLogin = async () => {
     setLoginEmail('artist@rkdigitalmedia.in');
     setLoginPassword('password123');
     setLoading(true);
-    setTimeout(() => {
-      login('artist@rkdigitalmedia.in', 'password123');
+    try {
+      await login('artist@rkdigitalmedia.in', 'password123');
+    } finally {
       setLoading(false);
-    }, 400);
+    }
   };
 
   // 2. Submit Sign Up
-  const handleSignupSubmit = (e) => {
+  const handleSignupSubmit = async (e) => {
     e.preventDefault();
     setErrorMessage('');
     setSuccessMessage('');
@@ -139,23 +143,26 @@ export default function AuthModal() {
     }
 
     setLoading(true);
-    setTimeout(() => {
-      const res = signup({
+    try {
+      const res = await signup({
         name: signupName,
         email: signupEmail,
         phone: signupPhone,
         role: signupRole,
         password: signupPassword,
       });
-      setLoading(false);
       if (!res.success) {
-        setErrorMessage(res.error);
+        setErrorMessage(res.error || 'Failed to create account.');
       }
-    }, 700);
+    } catch (err) {
+      setErrorMessage(err.message || 'Registration error.');
+    } finally {
+      setLoading(false);
+    }
   };
 
   // 3. Forgot Password Flow
-  const handleRequestOtp = (e) => {
+  const handleRequestOtp = async (e) => {
     e.preventDefault();
     setErrorMessage('');
     setSuccessMessage('');
@@ -166,9 +173,8 @@ export default function AuthModal() {
     }
 
     setLoading(true);
-    setTimeout(() => {
-      const res = requestPasswordReset(forgotEmail);
-      setLoading(false);
+    try {
+      const res = await requestPasswordReset(forgotEmail);
       if (!res.success) {
         setErrorMessage(res.error);
       } else {
@@ -177,10 +183,14 @@ export default function AuthModal() {
         setForgotStep(2);
         setSuccessMessage(`Verification code sent to ${forgotEmail}! (Code: ${res.otp})`);
       }
-    }, 600);
+    } catch (err) {
+      setErrorMessage(err.message || 'Error requesting reset.');
+    } finally {
+      setLoading(false);
+    }
   };
 
-  const handleResetPasswordSubmit = (e) => {
+  const handleResetPasswordSubmit = async (e) => {
     e.preventDefault();
     setErrorMessage('');
     setSuccessMessage('');
@@ -199,9 +209,8 @@ export default function AuthModal() {
     }
 
     setLoading(true);
-    setTimeout(() => {
-      const res = resetPassword(forgotEmail, newPassword);
-      setLoading(false);
+    try {
+      const res = await resetPassword(forgotEmail, newPassword);
       if (!res.success) {
         setErrorMessage(res.error);
       } else {
@@ -213,17 +222,22 @@ export default function AuthModal() {
           setSuccessMessage('You can now log in with your new password.');
         }, 1200);
       }
-    }, 600);
+    } catch (err) {
+      setErrorMessage(err.message || 'Error resetting password.');
+    } finally {
+      setLoading(false);
+    }
   };
 
   // 4. Google One-Tap / Custom Email Login
-  const handleGoogleLogin = (customEmail = null, customName = null) => {
+  const handleGoogleLogin = async (customEmail = null, customName = null) => {
     setLoading(true);
-    setTimeout(() => {
-      loginWithGoogle(customEmail, customName);
-      setLoading(false);
+    try {
+      await loginWithGoogle(customEmail, customName);
       setShowGooglePrompt(false);
-    }, 600);
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
