@@ -9,6 +9,7 @@ import {
   LogOut,
   User,
   ChevronDown,
+  Crown,
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useAuth } from '../context/AuthContext';
@@ -25,7 +26,7 @@ const navLinks = [
 export default function Navbar() {
   const [scrolled, setScrolled] = useState(false);
   const [mobileOpen, setMobileOpen] = useState(false);
-  const { user, openAuthModal, openDashboard, logout } = useAuth();
+  const { user, isOwner, openAuthModal, openDashboard, openOwnerDashboard, logout } = useAuth();
 
   useEffect(() => {
     const onScroll = () => {
@@ -105,11 +106,23 @@ export default function Navbar() {
               ))}
             </ul>
 
-            {/* Desktop Auth Action Buttons (Inspired directly by screenshot) */}
+            {/* Desktop Auth Action Buttons */}
             <div className="hidden lg:flex items-center gap-3">
               {user ? (
                 /* Logged In User State */
                 <div className="flex items-center gap-2.5">
+                  {/* Owner Portal quick badge if logged in as owner */}
+                  {isOwner && (
+                    <button
+                      onClick={openOwnerDashboard}
+                      className="flex items-center gap-1.5 px-3 py-2 rounded-xl bg-gradient-to-r from-amber-500/20 to-yellow-500/20 hover:from-amber-500/30 hover:to-yellow-500/30 border border-amber-500/40 text-amber-300 text-xs font-bold shadow-md shadow-amber-500/10 transition-all"
+                      title="Open Label Owner Command Center"
+                    >
+                      <Crown className="w-3.5 h-3.5 text-amber-400" />
+                      <span>Owner Portal</span>
+                    </button>
+                  )}
+
                   <button
                     onClick={openDashboard}
                     className="flex items-center gap-2 px-3.5 py-2 rounded-xl bg-white/5 hover:bg-white/10 border border-white/10 text-white transition-all text-sm font-medium group"
@@ -138,9 +151,19 @@ export default function Navbar() {
                   </button>
                 </div>
               ) : (
-                /* Guest State: Sign In & Sign Up (Matching uploaded screenshot) */
+                /* Guest State: Sign In, Sign Up, & Owner Access */
                 <div className="flex items-center gap-2.5">
-                  {/* Sign In button with ➜] icon */}
+                  {/* Dedicated Owner Portal entry point */}
+                  <button
+                    onClick={openOwnerDashboard}
+                    className="inline-flex items-center gap-1.5 px-3 py-2 text-xs font-bold text-amber-300 bg-amber-500/10 hover:bg-amber-500/20 border border-amber-500/30 hover:border-amber-500/50 rounded-xl transition-all shadow-sm"
+                    title="Direct Label Owner Portal (rkdigitalmediawork@gmail.com)"
+                  >
+                    <Crown className="w-3.5 h-3.5 text-amber-400" />
+                    <span>Owner</span>
+                  </button>
+
+                  {/* Sign In button */}
                   <button
                     onClick={() => openAuthModal('signin')}
                     className="inline-flex items-center gap-2 px-4 py-2 text-sm font-semibold text-white bg-black/40 hover:bg-white/10 border border-white/20 hover:border-white/40 rounded-xl transition-all duration-200 shadow-sm"
@@ -149,7 +172,7 @@ export default function Navbar() {
                     <LogIn className="w-4 h-4 text-gray-300" />
                   </button>
 
-                  {/* Sign Up button with 👤+ icon */}
+                  {/* Sign Up button */}
                   <button
                     onClick={() => openAuthModal('signup')}
                     className="inline-flex items-center gap-2 px-4 py-2 text-sm font-semibold text-white bg-gradient-to-r from-blue-600 via-indigo-600 to-purple-600 hover:from-blue-500 hover:to-purple-500 rounded-xl shadow-lg shadow-indigo-500/25 hover:shadow-indigo-500/40 transition-all duration-200"
@@ -223,6 +246,18 @@ export default function Navbar() {
                         <p className="text-[11px] text-gray-400 truncate">{user.email}</p>
                       </div>
                     </div>
+                    {isOwner && (
+                      <button
+                        onClick={() => {
+                          setMobileOpen(false);
+                          openOwnerDashboard();
+                        }}
+                        className="w-full py-2 px-3 rounded-xl bg-gradient-to-r from-amber-500/20 to-yellow-500/20 text-amber-300 border border-amber-500/40 text-xs font-bold flex items-center justify-center gap-2 shadow-sm"
+                      >
+                        <Crown className="w-3.5 h-3.5 text-amber-400" />
+                        <span>👑 Label Owner Portal</span>
+                      </button>
+                    )}
                     <div className="flex gap-2 pt-1">
                       <button
                         onClick={() => {
@@ -245,26 +280,39 @@ export default function Navbar() {
                     </div>
                   </div>
                 ) : (
-                  <div className="grid grid-cols-2 gap-2">
+                  <div className="space-y-2">
+                    <div className="grid grid-cols-2 gap-2">
+                      <button
+                        onClick={() => {
+                          setMobileOpen(false);
+                          openAuthModal('signin');
+                        }}
+                        className="flex items-center justify-center gap-1.5 py-2.5 rounded-xl border border-white/20 bg-white/5 text-white text-xs font-semibold hover:bg-white/10"
+                      >
+                        <span>Sign In</span>
+                        <LogIn className="w-3.5 h-3.5" />
+                      </button>
+                      <button
+                        onClick={() => {
+                          setMobileOpen(false);
+                          openAuthModal('signup');
+                        }}
+                        className="flex items-center justify-center gap-1.5 py-2.5 rounded-xl bg-gradient-to-r from-blue-600 to-indigo-600 text-white text-xs font-semibold shadow-md"
+                      >
+                        <span>Sign Up</span>
+                        <UserPlus className="w-3.5 h-3.5" />
+                      </button>
+                    </div>
+
                     <button
                       onClick={() => {
                         setMobileOpen(false);
-                        openAuthModal('signin');
+                        openOwnerDashboard();
                       }}
-                      className="flex items-center justify-center gap-1.5 py-2.5 rounded-xl border border-white/20 bg-white/5 text-white text-xs font-semibold hover:bg-white/10"
+                      className="w-full py-2 px-3 rounded-xl bg-amber-500/10 hover:bg-amber-500/20 text-amber-300 border border-amber-500/30 text-xs font-bold flex items-center justify-center gap-1.5 transition-all"
                     >
-                      <span>Sign In</span>
-                      <LogIn className="w-3.5 h-3.5" />
-                    </button>
-                    <button
-                      onClick={() => {
-                        setMobileOpen(false);
-                        openAuthModal('signup');
-                      }}
-                      className="flex items-center justify-center gap-1.5 py-2.5 rounded-xl bg-gradient-to-r from-blue-600 to-indigo-600 text-white text-xs font-semibold shadow-md"
-                    >
-                      <span>Sign Up</span>
-                      <UserPlus className="w-3.5 h-3.5" />
+                      <Crown className="w-3.5 h-3.5 text-amber-400" />
+                      <span>Label Owner Command Center</span>
                     </button>
                   </div>
                 )}

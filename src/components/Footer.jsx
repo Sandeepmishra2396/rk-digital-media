@@ -1,4 +1,4 @@
-import { Music, Mail, Phone, ArrowRight, Youtube, Instagram, MessageCircle, LogIn, LayoutDashboard } from 'lucide-react';
+import { Music, Mail, Phone, ArrowRight, Youtube, Instagram, MessageCircle, LogIn, LayoutDashboard, Crown } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 
 const navLinks = [
@@ -29,7 +29,7 @@ function handleNavClick(href) {
 }
 
 export default function Footer() {
-  const { user, openAuthModal, openDashboard } = useAuth();
+  const { user, openAuthModal, openDashboard, openOwnerDashboard } = useAuth();
   const year = new Date().getFullYear();
 
   return (
@@ -202,9 +202,20 @@ export default function Footer() {
           <p className="text-gray-500 text-sm">
             © {year} <span className="text-gray-400 font-medium">RK DIGITAL MEDIA</span>. All rights reserved.
           </p>
-          <p className="text-gray-600 text-xs">
-            Music Distribution & Digital Media — India
-          </p>
+          <div className="flex items-center gap-4">
+            <button
+              onClick={openOwnerDashboard}
+              className="text-gray-500 hover:text-amber-400 text-xs flex items-center gap-1.5 transition-colors font-medium"
+              title="Restricted Founder Login"
+            >
+              <Crown className="w-3.5 h-3.5 text-amber-500" />
+              <span>Owner Portal</span>
+            </button>
+            <span className="text-gray-700">•</span>
+            <p className="text-gray-600 text-xs">
+              Music Distribution & Digital Media — India
+            </p>
+          </div>
         </div>
       </div>
     </footer>

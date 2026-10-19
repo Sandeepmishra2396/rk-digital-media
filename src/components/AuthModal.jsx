@@ -15,6 +15,7 @@ import {
   AlertCircle,
   Music,
   ShieldCheck,
+  Crown,
 } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 
@@ -25,6 +26,7 @@ export default function AuthModal() {
     setAuthMode,
     closeAuthModal,
     login,
+    loginOwner,
     signup,
     loginWithGoogle,
     requestPasswordReset,
@@ -62,6 +64,9 @@ export default function AuthModal() {
   const [showGooglePrompt, setShowGooglePrompt] = useState(false);
   const [googleEmailInput, setGoogleEmailInput] = useState('');
   const [googleNameInput, setGoogleNameInput] = useState('');
+
+  // Owner Portal Login States
+  const [ownerLoginPassword, setOwnerLoginPassword] = useState('');
 
   if (!isAuthModalOpen) return null;
 
@@ -103,6 +108,30 @@ export default function AuthModal() {
     }
   };
 
+  // Dedicated Label Owner Login
+  const handleOwnerLoginSubmit = async (e) => {
+    e.preventDefault();
+    setErrorMessage('');
+    setSuccessMessage('');
+
+    if (!ownerLoginPassword) {
+      setErrorMessage('Please enter the Label Owner password.');
+      return;
+    }
+
+    setLoading(true);
+    try {
+      const res = await loginOwner(ownerLoginPassword);
+      if (!res.success) {
+        setErrorMessage(res.error || 'Security Alert: Incorrect Owner credentials.');
+      }
+    } catch (err) {
+      setErrorMessage(err.message || 'Error authenticating owner.');
+    } finally {
+      setLoading(false);
+    }
+  };
+
   // Demo 1-Click Login
   const handleQuickDemoLogin = async () => {
     setLoginEmail('artist@rkdigitalmedia.in');
@@ -127,6 +156,10 @@ export default function AuthModal() {
     }
     if (!signupEmail.trim()) {
       setErrorMessage('Please enter your valid Email address.');
+      return;
+    }
+    if (signupEmail.trim().toLowerCase() === 'rkdigitalmediawork@gmail.com') {
+      setErrorMessage('Security Alert: This email is strictly reserved for the Label Owner & Founder.');
       return;
     }
     if (signupPassword.length < 6) {
@@ -319,7 +352,18 @@ export default function AuthModal() {
                 : 'text-gray-400 hover:text-white'
             }`}
           >
-            Forgot Password
+            Forgot
+          </button>
+          <button
+            onClick={() => handleTabChange('owner')}
+            className={`flex-1 py-2 text-xs md:text-sm font-semibold rounded-xl transition-all flex items-center justify-center gap-1 ${
+              authMode === 'owner'
+                ? 'bg-gradient-to-r from-amber-500 to-yellow-600 text-black shadow-lg font-bold'
+                : 'text-amber-400/90 hover:text-amber-300'
+            }`}
+          >
+            <Crown className="w-3.5 h-3.5" />
+            <span>Owner</span>
           </button>
         </div>
 
@@ -847,6 +891,91 @@ export default function AuthModal() {
                 </form>
               )}
             </div>
+          )}
+
+          {/* ==================== TAB 4: OWNER PORTAL ==================== */}
+          {authMode === 'owner' && (
+            <form onSubmit={handleOwnerLoginSubmit} className="space-y-4">
+              <div className="p-4 rounded-2xl bg-amber-500/10 border border-amber-500/30 text-center space-y-2">
+                <div className="w-12 h-12 rounded-2xl bg-amber-500/20 border border-amber-500/40 flex items-center justify-center text-amber-400 mx-auto">
+                  <Crown className="w-6 h-6" />
+                </div>
+                <h3 className="text-white font-bold text-sm">Label Founder & Owner Command Center</h3>
+                <p className="text-xs text-amber-300 font-medium">
+                  Restricted direct access for Label Founder (Raushan Pathak)
+                </p>
+              </div>
+
+              <div>
+                <label className="block text-xs font-semibold text-gray-300 mb-1.5">
+                  Label Master Email (Protected)
+                </label>
+                <div className="relative">
+                  <Mail className="w-4 h-4 text-amber-400 absolute left-3.5 top-1/2 -translate-y-1/2" />
+                  <input
+                    type="email"
+                    readOnly
+                    value="rkdigitalmediawork@gmail.com"
+                    className="w-full pl-10 pr-24 py-2.5 bg-black/60 border border-amber-500/30 rounded-xl text-sm font-mono text-amber-300 cursor-not-allowed select-none focus:outline-none"
+                  />
+                  <div className="absolute right-3 top-1/2 -translate-y-1/2 flex items-center gap-1 text-[10px] text-amber-400 bg-amber-500/20 px-2 py-0.5 rounded-full border border-amber-500/30 font-semibold">
+                    <ShieldCheck className="w-3 h-3" />
+                    <span>Locked</span>
+                  </div>
+                </div>
+              </div>
+
+              <div>
+                <label className="block text-xs font-semibold text-gray-300 mb-1.5">
+                  Founder Password
+                </label>
+                <div className="relative">
+                  <Lock className="w-4 h-4 text-gray-400 absolute left-3.5 top-1/2 -translate-y-1/2" />
+                  <input
+                    type={showPassword ? 'text' : 'password'}
+                    required
+                    autoComplete="current-password"
+                    placeholder="Enter owner password..."
+                    value={ownerLoginPassword}
+                    onChange={(e) => setOwnerLoginPassword(e.target.value)}
+                    className="w-full pl-10 pr-10 py-2.5 bg-black/40 border border-white/15 rounded-xl text-sm text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-amber-500 focus:border-transparent transition-all"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setShowPassword(!showPassword)}
+                    className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-white"
+                  >
+                    {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                  </button>
+                </div>
+              </div>
+
+              <button
+                type="submit"
+                disabled={loading}
+                className="w-full py-3 px-4 rounded-xl bg-gradient-to-r from-amber-500 via-amber-600 to-yellow-600 hover:from-amber-400 hover:to-yellow-500 text-black font-extrabold text-sm shadow-xl shadow-amber-500/25 transition-all flex items-center justify-center gap-2 disabled:opacity-60"
+              >
+                {loading ? (
+                  <div className="w-5 h-5 border-2 border-black/40 border-t-black rounded-full animate-spin" />
+                ) : (
+                  <>
+                    <Crown className="w-4 h-4 text-black" />
+                    <span>Unlock Owner Command Center</span>
+                    <ArrowRight className="w-4 h-4" />
+                  </>
+                )}
+              </button>
+
+              <div className="text-center pt-2">
+                <button
+                  type="button"
+                  onClick={() => handleTabChange('signin')}
+                  className="text-xs text-gray-400 hover:text-white transition-colors"
+                >
+                  ← Back to Artist Sign In
+                </button>
+              </div>
+            </form>
           )}
         </div>
 

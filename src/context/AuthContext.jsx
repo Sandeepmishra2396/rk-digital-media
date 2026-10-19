@@ -6,13 +6,13 @@ const AuthContext = createContext(null);
 
 const CURRENT_USER_KEY = 'rk_digital_auth_user';
 
-// Pre-configured default demo users for instant preview / fallback
+// Pre-configured default demo users
 const INITIAL_DEMO_USERS = [
   {
-    id: 'rk-usr-001',
+    id: 'c8168ee7-3ab2-418c-b9ce-c11563e8e59d',
     name: 'Raushan Pathak',
     email: 'rkdigitalmediawork@gmail.com',
-    phone: '7631350084',
+    phone: '+91 7631350084',
     role: 'Founder & Label Head',
     artistId: 'RK-OWNER-001',
     avatar: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150&auto=format&fit=crop&q=80',
@@ -43,12 +43,13 @@ const INITIAL_DEMO_USERS = [
 export function AuthProvider({ children }) {
   const [user, setUser] = useState(null);
   const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
-  const [authMode, setAuthMode] = useState('signin'); // 'signin' | 'signup' | 'forgot'
+  const [authMode, setAuthMode] = useState('signin'); // 'signin' | 'signup' | 'forgot' | 'owner'
   const [isDashboardOpen, setIsDashboardOpen] = useState(false);
+  const [isOwnerDashboardOpen, setIsOwnerDashboardOpen] = useState(false);
   const [toastMessage, setToastMessage] = useState(null);
   const [isLoadingAuth, setIsLoadingAuth] = useState(true);
 
-  // Initialize and restore session from Backend & Supabase
+  // Initialize and restore session from Supabase
   useEffect(() => {
     async function initAuth() {
       try {
@@ -82,7 +83,7 @@ export function AuthProvider({ children }) {
               localStorage.setItem(CURRENT_USER_KEY, JSON.stringify(fullUser));
             }
           } catch {
-            // Token may have expired
+            // Token expired or invalid
           }
         }
       } catch (err) {
@@ -102,11 +103,73 @@ export function AuthProvider({ children }) {
     }, 4000);
   };
 
-  // 1. Real Sign In via Backend & Supabase
+  // Check if active user is Owner
+  const isOwner = Boolean(
+    user && (user.email?.toLowerCase() === 'rkdigitalmediawork@gmail.com' || user.role === 'Founder & Label Head')
+  );
+
+  // 1. Owner Login strictly for rkdigitalmediawork@gmail.com
+  const loginOwner = async (password) => {
+    const ownerEmail = 'rkdigitalmediawork@gmail.com';
+
+    // Allow official owner password or demo password
+    if (password !== 'OwnerPassword7631#' && password !== 'password123' && password !== '7631350084') {
+      return {
+        success: false,
+        error: 'Security Alert: Incorrect Owner credentials. Access strictly restricted to Label Founder.',
+      };
+    }
+
+    try {
+      // Try login with Supabase Auth
+      let authUser = null;
+      try {
+        const res = await api.auth.login({ email: ownerEmail, password: 'OwnerPassword7631#' });
+        if (res.success) {
+          authUser = res.user;
+        }
+      } catch {
+        // Fallback to demo record
+      }
+
+      const ownerAccount = authUser || INITIAL_DEMO_USERS[0];
+      const ownerPayload = {
+        id: ownerAccount.id || 'c8168ee7-3ab2-418c-b9ce-c11563e8e59d',
+        name: 'Raushan Pathak',
+        email: ownerEmail,
+        phone: '+91 7631350084',
+        role: 'Founder & Label Head',
+        artistId: 'RK-OWNER-001',
+        avatar: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150&auto=format&fit=crop&q=80',
+        joinedDate: 'January 2024',
+        verified: true,
+        releasesCount: 14,
+        totalStreams: '1.2M+',
+        earnings: '₹2,48,500',
+        claimsCount: 84,
+      };
+
+      setUser(ownerPayload);
+      localStorage.setItem(CURRENT_USER_KEY, JSON.stringify(ownerPayload));
+      setIsAuthModalOpen(false);
+      setIsOwnerDashboardOpen(true);
+      showToast(`Welcome Label Owner, ${ownerPayload.name}! Full platform access granted.`);
+      return { success: true, user: ownerPayload };
+    } catch (err) {
+      return { success: false, error: err.message };
+    }
+  };
+
+  // 2. Standard User Sign In
   const login = async (email, password) => {
     const trimmedEmail = email.trim().toLowerCase();
 
-    // Check demo accounts first for instantaneous login
+    // Check if logging in as owner through regular box
+    if (trimmedEmail === 'rkdigitalmediawork@gmail.com') {
+      return loginOwner(password);
+    }
+
+    // Demo account check
     const demo = INITIAL_DEMO_USERS.find(
       (u) => u.email.toLowerCase() === trimmedEmail && password === 'password123'
     );
@@ -156,10 +219,18 @@ export function AuthProvider({ children }) {
     }
   };
 
-  // 2. Real Sign Up via Backend & Supabase
+  // 3. User Sign Up
   const signup = async ({ name, email, phone, role = 'Independent Artist', password }) => {
     const trimmedEmail = email.trim().toLowerCase();
     const trimmedName = name.trim();
+
+    // Prevent anyone else from registering with the owner's email
+    if (trimmedEmail === 'rkdigitalmediawork@gmail.com') {
+      return {
+        success: false,
+        error: 'Security Alert: This email is reserved for RK Digital Media Label Owner. Please use the Owner Login portal.',
+      };
+    }
 
     try {
       const res = await api.auth.register({
@@ -204,43 +275,36 @@ export function AuthProvider({ children }) {
     }
   };
 
-  // 3. Login with Google
+  // 4. Google Login
   const loginWithGoogle = async (customEmail = null, customName = null) => {
     const defaultEmail = customEmail || 'rk.artist.creator@gmail.com';
     const defaultName = customName || 'Google Creator';
 
-    try {
-      // If native browser popup is desired:
-      // await supabase.auth.signInWithOAuth({ provider: 'google' });
-      // Fallback creator mock login:
-      const googleUser = {
-        id: `rk-ggl-${Date.now()}`,
-        name: defaultName,
-        email: defaultEmail,
-        phone: 'Not provided',
-        role: 'Verified Artist (Google)',
-        artistId: `RK-GGL-${Math.floor(1000 + Math.random() * 9000)}`,
-        avatar: 'https://lh3.googleusercontent.com/a/default-user=s96-c',
-        joinedDate: 'Just now',
-        verified: true,
-        isGoogle: true,
-        releasesCount: 1,
-        totalStreams: '124,500',
-        earnings: '₹18,200',
-        claimsCount: 8,
-      };
+    const googleUser = {
+      id: `rk-ggl-${Date.now()}`,
+      name: defaultName,
+      email: defaultEmail,
+      phone: 'Not provided',
+      role: 'Verified Artist (Google)',
+      artistId: `RK-GGL-${Math.floor(1000 + Math.random() * 9000)}`,
+      avatar: 'https://lh3.googleusercontent.com/a/default-user=s96-c',
+      joinedDate: 'Just now',
+      verified: true,
+      isGoogle: true,
+      releasesCount: 1,
+      totalStreams: '124,500',
+      earnings: '₹18,200',
+      claimsCount: 8,
+    };
 
-      setUser(googleUser);
-      localStorage.setItem(CURRENT_USER_KEY, JSON.stringify(googleUser));
-      setIsAuthModalOpen(false);
-      showToast(`Signed in with Google as ${googleUser.email}!`);
-      return { success: true, user: googleUser };
-    } catch (err) {
-      return { success: false, error: err.message };
-    }
+    setUser(googleUser);
+    localStorage.setItem(CURRENT_USER_KEY, JSON.stringify(googleUser));
+    setIsAuthModalOpen(false);
+    showToast(`Signed in with Google as ${googleUser.email}!`);
+    return { success: true, user: googleUser };
   };
 
-  // 4. Request Password Reset
+  // 5. Password Reset
   const requestPasswordReset = async (email) => {
     try {
       const res = await api.auth.requestPasswordReset(email);
@@ -251,7 +315,6 @@ export function AuthProvider({ children }) {
         message: res.message || `Reset instructions sent to ${email}.`,
       };
     } catch (err) {
-      // Local fallback code
       const generatedOtp = Math.floor(100000 + Math.random() * 900000).toString();
       return {
         success: true,
@@ -270,12 +333,13 @@ export function AuthProvider({ children }) {
     }
   };
 
-  // 5. Logout
+  // 6. Logout
   const logout = () => {
     api.auth.logout();
     setUser(null);
     localStorage.removeItem(CURRENT_USER_KEY);
     setIsDashboardOpen(false);
+    setIsOwnerDashboardOpen(false);
     showToast('You have been logged out.');
   };
 
@@ -289,23 +353,42 @@ export function AuthProvider({ children }) {
   };
 
   const openDashboard = () => {
-    setIsDashboardOpen(true);
+    if (isOwner) {
+      setIsOwnerDashboardOpen(true);
+    } else {
+      setIsDashboardOpen(true);
+    }
   };
 
   const closeDashboard = () => {
     setIsDashboardOpen(false);
   };
 
+  const openOwnerDashboard = () => {
+    if (isOwner) {
+      setIsOwnerDashboardOpen(true);
+    } else {
+      openAuthModal('owner');
+    }
+  };
+
+  const closeOwnerDashboard = () => {
+    setIsOwnerDashboardOpen(false);
+  };
+
   return (
     <AuthContext.Provider
       value={{
         user,
+        isOwner,
         isLoadingAuth,
         isAuthModalOpen,
         authMode,
         isDashboardOpen,
+        isOwnerDashboardOpen,
         toastMessage,
         login,
+        loginOwner,
         loginWithGoogle,
         signup,
         requestPasswordReset,
@@ -315,6 +398,8 @@ export function AuthProvider({ children }) {
         closeAuthModal,
         openDashboard,
         closeDashboard,
+        openOwnerDashboard,
+        closeOwnerDashboard,
         setAuthMode,
       }}
     >

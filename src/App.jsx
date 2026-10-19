@@ -17,6 +17,7 @@ import Contact from './components/Contact';
 import Footer from './components/Footer';
 import AuthModal from './components/AuthModal';
 import DashboardModal from './components/DashboardModal';
+import OwnerDashboardModal from './components/OwnerDashboardModal';
 
 // Page Loader
 function PageLoader({ visible }) {
@@ -121,6 +122,9 @@ function MainApp() {
 
         {/* Artist / Creator Dashboard Modal */}
         <DashboardModal />
+
+        {/* Owner / Founder Command Center Modal */}
+        <OwnerDashboardModal />
       </div>
     </>
   );

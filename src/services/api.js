@@ -357,4 +357,80 @@ export const api = {
       return { success: true, message: 'Message sent successfully!' };
     },
   },
+
+  // 5. Owner & Label Master Admin APIs (Restricted to rkdigitalmediawork@gmail.com)
+  admin: {
+    async getAllArtists() {
+      const { data, error } = await supabase
+        .from('profiles')
+        .select('*')
+        .order('created_at', { ascending: false });
+
+      if (error) {
+        console.warn('getAllArtists error:', error.message);
+        return [];
+      }
+      return data || [];
+    },
+
+    async getAllReleases() {
+      const { data, error } = await supabase
+        .from('releases')
+        .select('*')
+        .order('created_at', { ascending: false });
+
+      if (error) {
+        console.warn('getAllReleases error:', error.message);
+        return [];
+      }
+      return data || [];
+    },
+
+    async getAllInquiries() {
+      const { data, error } = await supabase
+        .from('contact_inquiries')
+        .select('*')
+        .order('created_at', { ascending: false });
+
+      if (error) {
+        console.warn('getAllInquiries error:', error.message);
+        return [];
+      }
+      return data || [];
+    },
+
+    async updateInquiryStatus(id, newStatus) {
+      const { data, error } = await supabase
+        .from('contact_inquiries')
+        .update({ status: newStatus })
+        .eq('id', id)
+        .select()
+        .single();
+
+      if (error) throw error;
+      return data;
+    },
+
+    async updateArtistVerification(id, verified) {
+      const { data, error } = await supabase
+        .from('profiles')
+        .update({ verified })
+        .eq('id', id)
+        .select()
+        .single();
+
+      if (error) throw error;
+      return data;
+    },
+
+    async deleteRelease(id) {
+      const { error } = await supabase
+        .from('releases')
+        .delete()
+        .eq('id', id);
+
+      if (error) throw error;
+      return true;
+    },
+  },
 };
