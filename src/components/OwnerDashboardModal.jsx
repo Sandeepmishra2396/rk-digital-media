@@ -38,6 +38,7 @@ export default function OwnerDashboardModal() {
     isOwner,
     isOwnerDashboardOpen,
     closeOwnerDashboard,
+    openAuthModal,
     loginOwner,
   } = useAuth();
 
@@ -396,6 +397,26 @@ export default function OwnerDashboardModal() {
                   </>
                 )}
               </button>
+
+              <div className="flex items-center justify-between text-xs text-gray-400 pt-1">
+                <button
+                  type="button"
+                  onClick={() => {
+                    closeOwnerDashboard();
+                    openAuthModal('forgot');
+                  }}
+                  className="text-xs text-amber-400 hover:text-amber-300 font-semibold transition-colors"
+                >
+                  Forgot Owner Password?
+                </button>
+                <button
+                  type="button"
+                  onClick={closeOwnerDashboard}
+                  className="hover:text-white transition-colors"
+                >
+                  Cancel
+                </button>
+              </div>
             </form>
           </div>
         ) : (

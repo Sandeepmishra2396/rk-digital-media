@@ -108,12 +108,22 @@ export function AuthProvider({ children }) {
     user && (user.email?.toLowerCase() === 'rkdigitalmediawork@gmail.com' || user.role === 'Founder & Label Head')
   );
 
+  const OWNER_PASSWORD_STORAGE_KEY = 'rk_digital_owner_password';
+
   // 1. Owner Login strictly for rkdigitalmediawork@gmail.com
   const loginOwner = async (password) => {
     const ownerEmail = 'rkdigitalmediawork@gmail.com';
+    const savedOwnerPass = localStorage.getItem(OWNER_PASSWORD_STORAGE_KEY);
+    const validPasswords = [
+      '@NehaRaushan007',
+      savedOwnerPass,
+      'OwnerPassword7631#',
+      'password123',
+      '7631350084',
+    ].filter(Boolean);
 
-    // Allow official owner password or demo password
-    if (password !== 'OwnerPassword7631#' && password !== 'password123' && password !== '7631350084') {
+    // Allow official owner password (@NehaRaushan007) or saved/fallback passwords
+    if (!validPasswords.includes(password)) {
       return {
         success: false,
         error: 'Security Alert: Incorrect Owner credentials. Access strictly restricted to Label Founder.',
@@ -124,7 +134,7 @@ export function AuthProvider({ children }) {
       // Try login with Supabase Auth
       let authUser = null;
       try {
-        const res = await api.auth.login({ email: ownerEmail, password: 'OwnerPassword7631#' });
+        const res = await api.auth.login({ email: ownerEmail, password: password });
         if (res.success) {
           authUser = res.user;
         }
@@ -326,7 +336,11 @@ export function AuthProvider({ children }) {
 
   const resetPassword = async (email, newPassword) => {
     try {
-      showToast('Password reset successfully! You can now sign in.');
+      const trimmedEmail = email.trim().toLowerCase();
+      if (trimmedEmail === 'rkdigitalmediawork@gmail.com') {
+        localStorage.setItem(OWNER_PASSWORD_STORAGE_KEY, newPassword);
+      }
+      showToast('Password reset successfully! You can now sign in with your new password.');
       return { success: true };
     } catch (err) {
       return { success: false, error: err.message };
